@@ -1,0 +1,34 @@
+Stückliste exportiert aus C:/Projekte/Misc/eagle/CAN WakeUp/Hardware/Schematic/CAN_Wake_Up.sch am 17.12.2018 17:42
+
+Part   Value         Device        Package Description                        MF                MPN          OC_FARNELL OC_NEWARK
+C1     10nF          C-EUC0805     C0805   CAPACITOR, European symbol                                                            
+C2     10nF          C-EUC0805     C0805   CAPACITOR, European symbol                                                            
+C3     10nF          C-EUC0805     C0805   CAPACITOR, European symbol                                                            
+C4     10uF          C-EUC0805     C0805   CAPACITOR, European symbol                                                            
+C5     10uF          C-EUC0805     C0805   CAPACITOR, European symbol                                                            
+C6     10uF          C-EUC0805     C0805   CAPACITOR, European symbol                                                            
+C7     10uF          C-EUC0805     C0805   CAPACITOR, European symbol                                                            
+C8     10uF          C-EUC0805     C0805   CAPACITOR, European symbol                                                            
+C9     10nF          C-EUC0805     C0805   CAPACITOR, European symbol                                                            
+C10    1uF           C-EUC0805     C0805   CAPACITOR, European symbol                                                            
+C11    100nF         C-EUC0805     C0805   CAPACITOR, European symbol                                                            
+C12    100nF         C-EUC0805     C0805   CAPACITOR, European symbol                                                            
+C13    22pF          C-EUC0805     C0805   CAPACITOR, European symbol                                                            
+C14    22pF          C-EUC0805     C0805   CAPACITOR, European symbol                                                            
+CAN                  PINHD-1X2     1X02    PIN HEADER                                                                            
+DA1    TJA1050       TJA1050       SO08    High speed CAN transceiver                                                            
+DEBUG                PINHD-1X4     1X04    PIN HEADER                                                                            
+IC1    STM32F10XCXT6 STM32F10XCXT6 TQFP48  ST STM32F101/103 48pin LQFP                                                           
+IC4    LM1117MP-5.0  LM1117MP-5.0  SOT223  800mA Low-Dropout Linear Regulator Texas Instruments LM1117MP-5.0 9778209    28X3417  
+IC5    LM1117MP-3.3  LM1117MP-3.3  SOT223  800mA Low-Dropout Linear Regulator Texas Instruments LM1117MP-3.3 9778195    28X3416  
+LED1   RED           LED3MM        LED3MM  LED                                                                                   
+LED2   GREEN         LED3MM        LED3MM  LED                                                                                   
+Q1     8MHz          XTAL          Q       CRYSTAL                                                                               
+R1     10k           R-EU_R0805    R0805   RESISTOR, European symbol                                                             
+R2     68            R-EU_R0805    R0805   RESISTOR, European symbol                                                             
+R3     56            R-EU_R0805    R0805   RESISTOR, European symbol                                                             
+R4     390           R-EU_R0805    R0805   RESISTOR, European symbol                                                             
+R5     10k           R-EU_R0805    R0805   RESISTOR, European symbol                                                             
+R6     10k           R-EU_R0805    R0805   RESISTOR, European symbol                                                             
+R7     10k           R-EU_R0805    R0805   RESISTOR, European symbol                                                             
+SWITCH               PINHD-1X2     1X02    PIN HEADER                                                                            
