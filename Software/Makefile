@@ -6,7 +6,7 @@ CC = arm-none-eabi-gcc
 OBJCPY = arm-none-eabi-objcopy
 
 #General compiler flags
-CFLAGS = -Wall -mcpu=cortex-m3 -mlittle-endian -mthumb -DSTM32F103xB -Os
+CFLAGS = -Wall -mcpu=cortex-m3 -mlittle-endian -mthumb -DSTM32F103xB -Os -g
 
 #Include directories
 INCLUDES = -IDrivers/CMSIS/Include -IDrivers/CMSIS/Device/ST/STM32F1xx/Include -Iinclude
