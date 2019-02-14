@@ -13,13 +13,14 @@ int main()
         {
             asm("nop");
         }
-        GPIOA->BSRR |= GPIO_BSRR_BR9; //bit reset (to low)
+        GPIOA->BSRR |= GPIO_BSRR_BR0; //bit reset (to low)
+        GPIOA->BSRR |= GPIO_BSRR_BS1; //bit set (to high)
 
         for(int i = 0; i < 5000000; i++)
         {
             asm("nop");
         }
-        GPIOA->BSRR |= GPIO_BSRR_BS9;
-        
+        GPIOA->BSRR |= GPIO_BSRR_BS0;
+        GPIOA->BSRR |= GPIO_BSRR_BR1;       
     }
 }

@@ -17,10 +17,24 @@ void gpio_init()
     /* set MCO clock output to SYSCLK = 32MHz */
     RCC->CFGR |= RCC_CFGR_MCO_SYSCLK;
 
-    /* configure Pin A9 LED */
-    GPIOA->CRH |= (GPIO_CRH_MODE9_1 | GPIO_CRH_MODE9_0);
-    GPIOA->CRH &= ~(GPIO_CRH_CNF9);
+    /* configure Pin A0 LED */
+    GPIOA->CRL |= (GPIO_CRL_MODE0_1 | GPIO_CRL_MODE0_0);
+    GPIOA->CRL &= ~(GPIO_CRL_CNF0);
+
+    /* set initially to high -> LED off */
+    GPIOA->BSRR |= GPIO_BSRR_BS0;
+
+    /* configure Pin A1 LED */
+    GPIOA->CRL |= (GPIO_CRL_MODE1_1 | GPIO_CRL_MODE1_0);
+    GPIOA->CRL &= ~(GPIO_CRL_CNF1);
     
     /* set initially to high -> LED off */
-    GPIOA->BSRR |= GPIO_BSRR_BS9;
+    GPIOA->BSRR |= GPIO_BSRR_BS1;
+
+    /* configure Pin A1 LED */
+    GPIOA->CRL |= (GPIO_CRL_MODE1_1 | GPIO_CRL_MODE1_0);
+    GPIOA->CRL &= ~(GPIO_CRL_CNF1);
+    
+    /* set initially to high -> LED off */
+    GPIOA->BSRR |= GPIO_BSRR_BS1;
 }
