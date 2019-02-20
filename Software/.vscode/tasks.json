@@ -1,0 +1,48 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "options": {
+        "env": {
+            "APP_NAME": "CANWakeUp"
+        }
+    },
+    "tasks": [
+        {
+            "label": "Build debug",
+            "type": "shell",
+            "command": "make MAIN=$APP_NAME",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Flash",
+            "type": "shell",
+            "command": "openocd",
+            "args": [
+                "-f",
+                "interface/stlink-v2-1.cfg",
+                "-f",
+                "target/stm32f1x.cfg",
+                "-c",
+                "\"program",
+                "./build/$APP_NAME.hex",
+                "verify",
+                "reset",
+                "exit\""
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Cleanup",
+            "type": "shell",
+            "command": "make clean",
+            "problemMatcher": []
+        }
+    ]
+}
