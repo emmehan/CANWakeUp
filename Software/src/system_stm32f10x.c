@@ -63,6 +63,13 @@ void SystemClockInit(void)
     FLASH->ACR &= ~(FLASH_ACR_LATENCY_2);
     FLASH->ACR &= ~(FLASH_ACR_LATENCY_1);
     FLASH->ACR |= FLASH_ACR_LATENCY_0;
+
+    /* set AHB prescaler to 0 = no scaling = 32MHz */
+    RCC->CFGR &= ~(RCC_CFGR_HPRE_3 | RCC_CFGR_HPRE_2 | RCC_CFGR_HPRE_1 | RCC_CFGR_HPRE_0 );
+
+    /* set APB1 prescaler to 0 = no scaling  = 32MHz*/
+    RCC->CFGR &= ~( RCC_CFGR_PPRE1_2 | RCC_CFGR_PPRE1_1 | RCC_CFGR_PPRE1_0);
+
 }
 
 void SystemInit(void)

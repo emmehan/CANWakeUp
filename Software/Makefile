@@ -69,6 +69,7 @@ user_files:
 	$(CC) $(CFLAGS) $(INCLUDES) -c ./src/main.c -o $(OUT_DIR)/main.o
 	$(CC) $(CFLAGS) $(INCLUDES) -c ./src/system_stm32f10x.c -o $(OUT_DIR)/system_stm32f10x.o
 	$(CC) $(CFLAGS) $(INCLUDES) -c ./src/gpio.c -o $(OUT_DIR)/gpio.o
+	$(CC) $(CFLAGS) $(INCLUDES) -c ./src/timer.c -o $(OUT_DIR)/timer.o
 
 clean:
 	rm -rf ./$(OUT_DIR)/*

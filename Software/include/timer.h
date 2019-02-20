@@ -13,3 +13,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+void timer_init(void);
+void timer_systick_start(void);
+void timer_systick_stop(void);
+void timer_systick_reset(void);
