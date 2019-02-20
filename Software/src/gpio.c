@@ -31,10 +31,47 @@ void gpio_init()
     /* set initially to high -> LED off */
     GPIOA->BSRR |= GPIO_BSRR_BS1;
 
-    /* configure Pin A1 LED */
-    GPIOA->CRL |= (GPIO_CRL_MODE1_1 | GPIO_CRL_MODE1_0);
-    GPIOA->CRL &= ~(GPIO_CRL_CNF1);
+    /* configure Pin A2 Button */
+    GPIOA->CRL &= ~(GPIO_CRL_MODE1_1 | GPIO_CRL_MODE1_0);   //input mode
+    GPIOA->CRL &= ~(GPIO_CRL_CNF1); 
+    GPIOA->CRL |= GPIO_CRL_CNF0;
+}
+
+void gpio_set_led_red(BITACTION_t _new_state)
+{
+    if(BITACTION_RESET == _new_state)
+    {
+        GPIOA->BSRR |= GPIO_BSRR_BR0; //bit reset (to low)
+    }
+    else if(BITACTION_SET == _new_state)
+    {
+        GPIOA->BSRR |= GPIO_BSRR_BS0; //bit set (to high)
+    }
+}
+
+void gpio_set_led_green(BITACTION_t _new_state)
+{
+    if(BITACTION_RESET == _new_state)
+    {
+        GPIOA->BSRR |= GPIO_BSRR_BR1; //bit reset (to low)
+    }
+    else if(BITACTION_SET == _new_state)
+    {
+        GPIOA->BSRR |= GPIO_BSRR_BS1; //bit set (to high)
+    }
+}
+
+BITACTION_t gpio_read_button(void)
+{
+    static uint32_t portvals = 0;
+    BITACTION_t retval = BITACTION_RESET;
     
-    /* set initially to high -> LED off */
-    GPIOA->BSRR |= GPIO_BSRR_BS1;
+    /* read button state */
+    portvals = GPIOA->IDR;
+    if(portvals & (0x00000004))
+    {
+        retval = BITACTION_SET;
+    }
+
+    return retval;
 }
