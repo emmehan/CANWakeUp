@@ -1,10 +1,21 @@
+/*
+Application for interfacing a TJA1050 CAN transceiver with a STM32F103C8T6 MCU.
+Copyright (C) 2019  Jonas Heim
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "stm32f103xb.h"
 #include "system_stm32f1xx.h"
 
-
-/*
- * 
- */
 void SystemClockInit(void)
 {
 
@@ -52,20 +63,10 @@ void SystemClockInit(void)
     FLASH->ACR &= ~(FLASH_ACR_LATENCY_2);
     FLASH->ACR &= ~(FLASH_ACR_LATENCY_1);
     FLASH->ACR |= FLASH_ACR_LATENCY_0;
-
-    /* set AHB prescaler; 0 on reset, so AHB_CLK=SYSCLK=32MHz */
-    
-
-    /* set APB low (APB1) clock; 0 on reset, so PCLK1=SYSCLK=32MHz */
-
-    /* set APB high (APB2) clock; 0 on reset, so PCLK2=SYSCLK=32MHz */
-
-
 }
 
 void SystemInit(void)
 {
-
     /*   System initialization
      *
      * - configuration of internal voltage regulator
@@ -75,5 +76,4 @@ void SystemInit(void)
 
     /* Configure system clock */
     SystemClockInit();
-
 }
