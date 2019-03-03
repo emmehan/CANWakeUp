@@ -16,6 +16,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "timer.h"
 #include "stm32f103xb.h"
 
+#define TIMER_RELOAD_VALUE_1MS      ( 0x7D00 )
+
 void timer_init(void)
 {
     /***************************************
@@ -46,19 +48,20 @@ void timer_init(void)
     /* Enable Update event */
     TIM2->CR1 &= ~(TIM_CR1_UDIS);
 
+    /* Set Auto-Reload value for 1ms period */
+    TIM2->ARR = TIMER_RELOAD_VALUE_1MS;
+
+    /* Enable Update Interrupt */
+    TIM2->DIER |= TIM_DIER_UIE;
+
 }
 
-void timer_systick_start(void)
-{
-    TIM2->CR1 &= ~(TIM_CR1_CEN);
-}
-
-void timer_systick_stop(void)
+void timer_1ms_start(void)
 {
     TIM2->CR1 |= TIM_CR1_CEN;
 }
 
-void timer_systick_reset(void)
+void timer_1ms_stop(void)
 {
-
+    TIM2->CR1 &= ~(TIM_CR1_CEN);
 }

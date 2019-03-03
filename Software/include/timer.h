@@ -14,6 +14,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 void timer_init(void);
-void timer_systick_start(void);
-void timer_systick_stop(void);
-void timer_systick_reset(void);
+void timer_1ms_start(void);
+void timer_1ms_stop(void);

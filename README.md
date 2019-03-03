@@ -28,10 +28,9 @@ The `MAIN` parameter is optional and used to define the firmware name.
 
 It defaults to `CANWakeUp`.
 
-There is also a task for VSCode available for this step.
-___
 To flash the firmare to the controller run:
 
     openocd -f interface/stlink-v2-1.cfg -f target/stm32f1x.cfg -c "program ./build/$FW_NAME.hex  verify reset exit"
 while substitute `$FW_NAME` to the correct firmware filename.
-There is a task in VSCode available for this step as well.
+
+There are preconfigured tasks for Visual Studio Code available for Building, Cleaning, Flashing and Debugging (using the [Cortex-Debug](https://marcelball.ca/projects/cortex-debug) extension by marus25).

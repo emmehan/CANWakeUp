@@ -35,8 +35,9 @@ void gpio_init()
     /************************************************
      * Configure Pin PA0 as GPIO output (LED RED)
      ************************************************/
-    GPIOA->CRL |= (GPIO_CRL_MODE0_1 | GPIO_CRL_MODE0_0);
-    GPIOA->CRL &= ~(GPIO_CRL_CNF0);
+    GPIOA->CRL |= (GPIO_CRL_MODE0_0);
+    GPIOA->CRL &= ~(GPIO_CRL_MODE0_1);
+    GPIOA->CRL &= ~(GPIO_CRL_CNF0_1 | GPIO_CRL_CNF0_0);
 
     /* set initially to high -> LED off */
     GPIOA->BSRR |= GPIO_BSRR_BS0;
@@ -44,18 +45,19 @@ void gpio_init()
     /************************************************
      * Configure Pin PA1 as GPIO output (LED GREEN)
      ************************************************/
-    GPIOA->CRL |= (GPIO_CRL_MODE1_1 | GPIO_CRL_MODE1_0);
-    GPIOA->CRL &= ~(GPIO_CRL_CNF1);
+    GPIOA->CRL |= (GPIO_CRL_MODE1_0);
+    GPIOA->CRL &= ~(GPIO_CRL_MODE1_1);
+    GPIOA->CRL &= ~(GPIO_CRL_CNF1_1 | GPIO_CRL_CNF1_0);
     
     /* set initially to high -> LED off */
     GPIOA->BSRR |= GPIO_BSRR_BS1;
 
     /************************************************
-     * Configure Pin PA0 as GPIO input (SWITCH)
+     * Configure Pin PA2 as GPIO input (SWITCH)
      ************************************************/
-    GPIOA->CRL &= ~(GPIO_CRL_MODE1_1 | GPIO_CRL_MODE1_0);
-    GPIOA->CRL &= ~(GPIO_CRL_CNF1); 
-    GPIOA->CRL |= GPIO_CRL_CNF0;
+    GPIOA->CRL &= ~(GPIO_CRL_MODE2_1 | GPIO_CRL_MODE2_0);
+    GPIOA->CRL &= ~(GPIO_CRL_CNF2_1);
+    GPIOA->CRL |= GPIO_CRL_CNF2_0;
 
     /*****************************************************
      * Configure Pin PA10 as GPIO output (CAN SILENT_MODE)
@@ -121,7 +123,7 @@ BITACTION_t gpio_read_button(void)
     
     /* read button state */
     portvals = GPIOA->IDR;
-    if(portvals & (0x00000004))
+    if(portvals & (GPIO_IDR_IDR4))
     {
         retval = BITACTION_SET;
     }

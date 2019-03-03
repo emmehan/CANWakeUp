@@ -33,7 +33,6 @@
                 "\"program",
                 "./build/$APP_NAME.hex",
                 "verify",
-                "reset",
                 "exit\""
             ],
             "problemMatcher": []

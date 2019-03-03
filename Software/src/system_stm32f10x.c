@@ -59,6 +59,10 @@ void SystemClockInit(void)
     while((RCC->CR & RCC_CR_HSION));
 
     /* set Flash parameters */
+
+    /* enable Flash prefetch buffer */
+    FLASH->ACR |= FLASH_ACR_PRFTBE;
+
     /* set flash latency; if 0 < SYSCLK(=32MHz) ≤ 24 MHz => one wait state*/
     FLASH->ACR &= ~(FLASH_ACR_LATENCY_2);
     FLASH->ACR &= ~(FLASH_ACR_LATENCY_1);
@@ -69,6 +73,12 @@ void SystemClockInit(void)
 
     /* set APB1 prescaler to 0 = no scaling  = 32MHz*/
     RCC->CFGR &= ~( RCC_CFGR_PPRE1_2 | RCC_CFGR_PPRE1_1 | RCC_CFGR_PPRE1_0);
+
+    /* set APB2 prescaler to 0 = no scaling  = 32MHz*/
+    RCC->CFGR &= ~( RCC_CFGR_PPRE2_2 | RCC_CFGR_PPRE2_1 | RCC_CFGR_PPRE2_0);
+
+    /* Vector Table reolocation to internal flash */
+    SCB->VTOR = FLASH_BASE;
 
 }
 
