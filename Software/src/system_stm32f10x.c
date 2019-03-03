@@ -1,3 +1,10 @@
+/**************************************************************************//**
+ * @file     system_stm32f10x.c
+ * @brief    Implementation file for initial MCU configuration after power up.
+ * @version  V1.0
+ * @date     03.03.2019
+ ******************************************************************************/
+
 /*
 Application for interfacing a TJA1050 CAN transceiver with a STM32F103C8T6 MCU.
 Copyright (C) 2019  Jonas Heim
@@ -16,7 +23,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "stm32f103xb.h"
 #include "system_stm32f1xx.h"
 
-void SystemClockInit(void)
+/**
+  \brief    Initializes the system clocks.
+  \details  Initializes HSE as clock source (external 8MHz quartz).
+            Initializes PLL to 32MHz system clock with HSE as source.
+            Configures internal flash parameters.
+            Configures AHB prescaler (no prescaler, AHB clock 32MHz)
+            Configures APB1 prescaler (no prescaler, APB1 clock 32MHz)
+            Configures APB2 prescaler (no prescaler, APB2 clock 32MHz)
+ */
+void SystemCoreClockUpdate(void)
 {
 
     /* Enable power interface control clock */
@@ -82,15 +98,12 @@ void SystemClockInit(void)
 
 }
 
+/**
+  \brief    Initializes the system hardware.
+  \details   Calls function for clock configuration.
+ */
 void SystemInit(void)
 {
-    /*   System initialization
-     *
-     * - configuration of internal voltage regulator
-     * - configuration of clock source
-     * 
-     */
-
-    /* Configure system clock */
-    SystemClockInit();
+     /* Configure system clock */
+    SystemCoreClockUpdate();
 }

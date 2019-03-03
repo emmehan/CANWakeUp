@@ -1,3 +1,10 @@
+/**************************************************************************//**
+ * @file     main.h
+ * @brief    Main header file.
+ * @version  V1.0
+ * @date     03.03.2019
+ ******************************************************************************/
+
 /*
 Application for interfacing a TJA1050 CAN transceiver with a STM32F103C8T6 MCU.
 Copyright (C) 2019  Jonas Heim

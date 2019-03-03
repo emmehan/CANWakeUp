@@ -23,6 +23,9 @@ MAIN = CANWakeUp
 #Output directory
 OUT_DIR = build
 
+# Documentation directory
+DOC_DIR = doc
+
 ######################
 # Build options/flags
 ######################
@@ -50,10 +53,13 @@ LFLAGS = -mcpu=cortex-m3 -mlittle-endian -mthumb -DSTM32F103xB -T$(LFILE) -g -Wl
 ################
 
 MKDIR_CMD = mkdir -p
+CREATE_DOC = doxygen ./$(DOC_DIR)/Doxyfile
 
 #############
 #Build rules
 #############
+
+.PHONY: doc
 
 all: clean create_out_directory $(MAIN)
 	echo Done!
@@ -73,8 +79,12 @@ user_files:
 
 clean:
 	rm -rf ./$(OUT_DIR)/*
+	rm -rf ./$(DOC_DIR)/html
 
 create_out_directory: $(OUT_DIR)
+
+doc:
+	$(CREATE_DOC)
 
 $(OUT_DIR):
 	$(MKDIR_CMD) $(OUT_DIR)

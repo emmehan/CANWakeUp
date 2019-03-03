@@ -1,3 +1,10 @@
+/**************************************************************************//**
+ * @file     main.c
+ * @brief    Main file of project
+ * @version  V1.0
+ * @date     03.03.2019
+ ******************************************************************************/
+
 /*
 Application for interfacing a TJA1050 CAN transceiver with a STM32F103C8T6 MCU.
 Copyright (C) 2019  Jonas Heim
@@ -15,8 +22,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
 
-volatile uint64_t i = 0;
+static volatile uint64_t delay_counter = 0;    /*!< Counter variable used for active waiting delays. */
 
+/**
+  \brief    Called after hardware initialization.
+  \details  Initializes GPIO module.
+            Initializes TIMER module.
+            Enabled NVIC interrupt for timer TIM2.
+            Set signals LED_RED and LED_GREEN to off (BITACTION_SET).
+            Toggles LED_RED in static period.
+ */
 int main()
 {
     gpio_init();
@@ -33,20 +48,27 @@ int main()
 
     while(1)
     {
-        for(i = 5000000; i > 0; i--){}
+        for(delay_counter = 5000000; delay_counter > 0; delay_counter--){}
 
         gpio_set_led_red(BITACTION_SET);
 
-        for(i = 5000000; i > 0; i--){}
+        for(delay_counter = 5000000; delay_counter > 0; delay_counter--){}
 
         gpio_set_led_red(BITACTION_RESET);
     }
 }
 
+/**
+  \brief    Interrupt service routine for Timer TIM2.
+  \details  Is called if a interrupt is triggered by the TIM2 Timer module. 
+            Withing the service routine the interrupt cause is distinguished.
+            The interrupt flag of the timer module is cleared manually.
+            Toggles status of LED_GREEN signal when called.
+ */
 void TIM2_IRQHandler(void)
 {
     static uint8_t  LED_FLAG = 1;
-    static uint16_t interrupt_register = 0;
+    uint16_t interrupt_register = 0;
 
     /* read TIM2 status register */
     interrupt_register = TIM2->SR;

@@ -1,3 +1,10 @@
+/**************************************************************************//**
+ * @file     gpio.c
+ * @brief    Implementation file of the GPIO module.
+ * @version  V1.0
+ * @date     03.03.2019
+ ******************************************************************************/
+
 /*
 Application for interfacing a TJA1050 CAN transceiver with a STM32F103C8T6 MCU.
 Copyright (C) 2019  Jonas Heim
@@ -15,22 +22,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "gpio.h"
 
+/**
+  \brief    Initializes the gpio peripherals.
+  \details  Enabled clock for GPIO Port A.
+            Configures Port A Pin 0 as Push/Pull Output (Signal LED_RED).
+            Configures Port A Pin 1 as Push/Pull Output (Signal LED_GREEN).
+            Configures Port A Pin 2 as FLoating Input (Signal SWITCH).
+            Configures Port A Pin 8 as Alternative function SYSCLK output (Signal MCO).
+            Configures Port A Pin 10 as Push/Pull Output (Signal CAN_SILENT_MODE).
+            Configures Port A Pin 11 as Alternative function (Signal CAN_RX).
+            Configures Port A Pin 12 as Alternative function (Signal LED_TX).
+ */
 void gpio_init()
 {
 
     /* enable clock for port A */
     RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
 
-
-    /************************************************
-     * Configure Pin PA8 as alternate function (MCO)
-     ************************************************/
-    GPIOA->CRH  |= (GPIO_CRH_MODE8_1 | GPIO_CRH_MODE8_0);
-    GPIOA->CRH &= ~(GPIO_CRH_CNF8);
-    GPIOA->CRH |= (GPIO_CRH_CNF8_1);
-
-    /* set MCO clock output to SYSCLK = 32MHz */
-    RCC->CFGR |= RCC_CFGR_MCO_SYSCLK;
 
     /************************************************
      * Configure Pin PA0 as GPIO output (LED RED)
@@ -59,27 +67,42 @@ void gpio_init()
     GPIOA->CRL &= ~(GPIO_CRL_CNF2_1);
     GPIOA->CRL |= GPIO_CRL_CNF2_0;
 
+    /************************************************
+     * Configure Pin PA8 as alternate function (MCO)
+     ************************************************/
+    GPIOA->CRH  |= (GPIO_CRH_MODE8_1 | GPIO_CRH_MODE8_0);
+    GPIOA->CRH &= ~(GPIO_CRH_CNF8);
+    GPIOA->CRH |= (GPIO_CRH_CNF8_1);
+
+    /* set MCO clock output to SYSCLK = 32MHz */
+    RCC->CFGR |= RCC_CFGR_MCO_SYSCLK;
+
     /*****************************************************
-     * Configure Pin PA10 as GPIO output (CAN SILENT_MODE)
+     * Configure Pin PA10 as GPIO output (CAN_SILENT_MODE)
      *****************************************************/
     GPIOA->CRH |= (GPIO_CRH_MODE10_1 | GPIO_CRH_MODE10_0);
     GPIOA->CRH &= ~(GPIO_CRH_CNF10_1 | GPIO_CRH_CNF10_0);
 
     /*****************************************************
-     * Configure Pin PA11 as alternate function (CAN RX)
+     * Configure Pin PA11 as alternate function (CAN_RX)
      *****************************************************/
     GPIOA->CRH |= (GPIO_CRH_MODE11_1 | GPIO_CRH_MODE11_0);
     GPIOA->CRH |= (GPIO_CRH_CNF11_1);
     GPIOA->CRH &= ~(GPIO_CRH_CNF11_0);
 
     /*****************************************************
-     * Configure Pin PA12 as alternate function (CAN TX)
+     * Configure Pin PA12 as alternate function (CAN_TX)
      *****************************************************/
     GPIOA->CRH |= (GPIO_CRH_MODE12_1 | GPIO_CRH_MODE12_0);
     GPIOA->CRH |= (GPIO_CRH_CNF12_1);
     GPIOA->CRH &= ~(GPIO_CRH_CNF12_0);
 }
 
+/**
+  \brief    Set output value of signal LED_RED.
+  \details  Set output value of Port A Pin 0.
+  \param[in] _new_state The new output value of the signal.
+ */
 void gpio_set_led_red(BITACTION_t _new_state)
 {
     if(BITACTION_RESET == _new_state)
@@ -92,6 +115,11 @@ void gpio_set_led_red(BITACTION_t _new_state)
     }
 }
 
+/**
+  \brief    Set output value of signal LED_GREEN.
+  \details  Set output value of Port A Pin 1.
+  \param[in] _new_state The new output value of the signal.
+ */
 void gpio_set_led_green(BITACTION_t _new_state)
 {
     if(BITACTION_RESET == _new_state)
@@ -104,6 +132,11 @@ void gpio_set_led_green(BITACTION_t _new_state)
     }
 }
 
+/**
+  \brief    Set output value of signal CAN_SILENT_MODE.
+  \details  Set output value of Port A Pin 10.
+  \param[in] _new_state The new output value of the signal.
+ */
 void gpio_set_can_silent_mode(BITACTION_t _new_state)
 {
     if(BITACTION_RESET == _new_state)
@@ -116,6 +149,11 @@ void gpio_set_can_silent_mode(BITACTION_t _new_state)
     }
 }
 
+/**
+  \brief    Get input value of signal SWITCH.
+  \details  Get output value of Port A Pin 2.
+  \return   Returns the current value of the signal (not debounced!).
+ */
 BITACTION_t gpio_read_button(void)
 {
     static uint32_t portvals = 0;

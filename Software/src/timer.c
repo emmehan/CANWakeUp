@@ -1,3 +1,10 @@
+/**************************************************************************//**
+ * @file     timer.c
+ * @brief    Implementation file for TIMER module
+ * @version  V1.0
+ * @date     03.03.2019
+ ******************************************************************************/
+
 /*
 Application for interfacing a TJA1050 CAN transceiver with a STM32F103C8T6 MCU.
 Copyright (C) 2019  Jonas Heim
@@ -16,8 +23,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "timer.h"
 #include "stm32f103xb.h"
 
-#define TIMER_RELOAD_VALUE_1MS      ( 0x7D00 )
+/** @addtogroup TIMER
+  * @{
+  */
 
+#define TIMER_RELOAD_VALUE_1MS      ( 0x7D00 ) /*!< Auto-Reload value for timer TIM2 to generate a periodic interrupt @ 1ms. */
+
+/**
+  \brief    Initializes the timer peripherals.
+  \details  Initializes Timer TIM2 to generate an overflow interrupt every 1ms.
+ */
 void timer_init(void)
 {
     /***************************************
@@ -56,12 +71,22 @@ void timer_init(void)
 
 }
 
+/**
+  \details   Enable timer TIM2.
+*/
 void timer_1ms_start(void)
 {
     TIM2->CR1 |= TIM_CR1_CEN;
 }
 
+/**
+  \details   Disable timer TIM2.
+*/
 void timer_1ms_stop(void)
 {
     TIM2->CR1 &= ~(TIM_CR1_CEN);
 }
+
+/**
+  * @}
+  */
