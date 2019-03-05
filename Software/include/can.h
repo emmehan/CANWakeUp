@@ -1,8 +1,8 @@
-/***************************************äinbclude***********************************//**
- * @file     main.h
- * @brief    Main header file.
+/**************************************************************************//**
+ * @file     can.h
+ * @brief    Header file of the CAN module
  * @version  V1.0
- * @date     03.03.2019
+ * @date     05.03.2019
  ******************************************************************************/
 
 /*
@@ -21,6 +21,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "stm32f103xb.h"
-#include "gpio.h"
-#include "timer.h"
-#include "can.h"
+
+/** @addtogroup CAN
+  * @{
+  */
+
+void can_init(void);
+
+/**
+  * @}
+  */

@@ -22,7 +22,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
 
-static volatile uint64_t delay_counter = 0;    /*!< Counter variable used for active waiting delays. */
+uint32_t counter_tick = 0;
+
+struct {
+    uint8_t led_red:1;
+    uint8_t led_green:1;
+} flags;
 
 /**
   \brief    Called after hardware initialization.
@@ -34,8 +39,15 @@ static volatile uint64_t delay_counter = 0;    /*!< Counter variable used for ac
  */
 int main()
 {
+    uint32_t prev_counter_tick = 0;
+    
+    /* reset flags */
+    flags.led_green = 0;
+    flags.led_red   = 0;
+
     gpio_init();
     timer_init();
+    can_init();
 
     /* Enable Timer2 interrupt */
     NVIC_EnableIRQ(TIM2_IRQn);
@@ -48,14 +60,9 @@ int main()
 
     while(1)
     {
-        for(delay_counter = 5000000; delay_counter > 0; delay_counter--){}
-
-        gpio_set_led_red(BITACTION_SET);
-
-        for(delay_counter = 5000000; delay_counter > 0; delay_counter--){}
-
-        gpio_set_led_red(BITACTION_RESET);
+ 
     }
+
 }
 
 /**
@@ -63,29 +70,50 @@ int main()
   \details  Is called if a interrupt is triggered by the TIM2 Timer module. 
             Withing the service routine the interrupt cause is distinguished.
             The interrupt flag of the timer module is cleared manually.
-            Toggles status of LED_GREEN signal when called.
+            Increments counter_tick if timer update event has triggered the interrupt.
  */
 void TIM2_IRQHandler(void)
 {
-    static uint8_t  LED_FLAG = 1;
-    uint16_t interrupt_register = 0;
+    static uint16_t interrupt_register = 0;
 
     /* read TIM2 status register */
     interrupt_register = TIM2->SR;
 
     if(interrupt_register & TIM_SR_UIF)
     {
-        /* Overflow event is interrupt source */
-        if(LED_FLAG)
+
+        if(0 == (counter_tick % 200))
         {
-            gpio_set_led_green(BITACTION_SET);
-            LED_FLAG = 0 ;
+            /* toggle red LED */
+            if(flags.led_red)
+            {
+                gpio_set_led_red(BITACTION_RESET);
+                flags.led_red = 0;
+            }
+            else
+            {
+                gpio_set_led_red(BITACTION_SET);
+                flags.led_red = 1;
+            }
         }
-        else
+
+        if(0 == (counter_tick % 500))
         {
-            gpio_set_led_green(BITACTION_RESET);
-            LED_FLAG = 1;
+            /* toggle green LED */
+            if(flags.led_green)
+            {
+                gpio_set_led_green(BITACTION_RESET);
+                flags.led_green = 0;
+            }
+            else
+            {
+                gpio_set_led_green(BITACTION_SET);
+                flags.led_green = 1;
+            }
         }
+
+        counter_tick++;
+
     }
 
     /*

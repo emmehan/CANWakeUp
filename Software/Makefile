@@ -65,7 +65,7 @@ all: clean create_out_directory $(MAIN)
 	echo Done!
 
 $(MAIN): startup user_files
-	$(CC) $(INCLUDES) $(OUT_DIR)/main.o $(OUT_DIR)/system_stm32f10x.o $(OUT_DIR)/startup_stm32f103xb.o $(OUT_DIR)/gpio.o $(OUT_DIR)/timer.o $(LFLAGS) -o $(OUT_DIR)/$(MAIN).elf
+	$(CC) $(INCLUDES) $(OUT_DIR)/main.o $(OUT_DIR)/system_stm32f10x.o $(OUT_DIR)/startup_stm32f103xb.o $(OUT_DIR)/gpio.o $(OUT_DIR)/timer.o $(OUT_DIR)/can.o $(LFLAGS) -o $(OUT_DIR)/$(MAIN).elf
 	$(OBJCPY) -Oihex $(OUT_DIR)/$(MAIN).elf $(OUT_DIR)/$(MAIN).hex
 
 startup:
@@ -76,6 +76,7 @@ user_files:
 	$(CC) $(CFLAGS) $(INCLUDES) -c ./src/system_stm32f10x.c -o $(OUT_DIR)/system_stm32f10x.o
 	$(CC) $(CFLAGS) $(INCLUDES) -c ./src/gpio.c -o $(OUT_DIR)/gpio.o
 	$(CC) $(CFLAGS) $(INCLUDES) -c ./src/timer.c -o $(OUT_DIR)/timer.o
+	$(CC) $(CFLAGS) $(INCLUDES) -c ./src/can.c -o $(OUT_DIR)/can.o
 
 clean:
 	rm -rf ./$(OUT_DIR)/*
