@@ -45,20 +45,56 @@ void can_init(void)
 
   /* Set CAN options
    *  - automatic wake up mode (AWUM)
-   *  - no automatic retransmission (NART)
+   *  - automatic retransmission (NART)
+   *  - automatic bus off management (ABOM)
    *  - transmit FIFO priority by order of request (TXFP)
+   *  - disable CAN freeze while debugging
    */
-  CAN1->MCR |= ( CAN_MCR_AWUM | CAN_MCR_NART | CAN_MCR_TXFP );
+  CAN1->MCR &= ~(CAN_MCR_NART  | CAN_MCR_DBF);
+  CAN1->MCR |= ( CAN_MCR_AWUM | CAN_MCR_TXFP | CAN_MCR_ABOM );
+
 
   /* Set CAN bit timing
-   * 
-   * 
+   *  - Baud rate prescaler
+   *  - Resynchronisation jump width
+   *  - Time segment 1
+   *  - Time segment 2
    */
+
+  /* Set baud rate prescaler to 3 */
+  CAN1->BTR &= ~(CAN_BTR_BRP);
+  CAN1->BTR |= ( 3 << CAN_BTR_BRP_Pos);
+
+  /* Set resynchronisation jump width to 1 */
+  CAN1->BTR |= CAN_BTR_SJW;
+
+  /* Set Time segment 2 to 1 */
+  CAN1->BTR &= ~(CAN_BTR_TS2);
+  CAN1->BTR |= CAN_BTR_TS2_0;
+
+  /* Set Time Segment 1 to 12 */
+  CAN1->BTR &= ~(CAN_BTR_TS1);
+  CAN1->BTR |= (CAN_BTR_TS1_3 | CAN_BTR_TS1_2);
+
+  /* Enable LoopBack mode */
+  CAN1->BTR |= CAN_BTR_LBKM;
 
   /* Leave Initialization mode */
   CAN1->MCR &= ~(CAN_MCR_INRQ);
 
   /* Wait until CAN peripheral left initialization mode */
   while(CAN1->MSR & CAN_MSR_INAK){}
+
+  /* Set CAN filter options 
+   *
+   * 
+   */
+
+  /* Enable CAN filter initialization mode */
+  CAN1->FMR |= CAN_FMR_FINIT;
+
+  /* Disable CAN filter initialization mode */
+
+
 
 }

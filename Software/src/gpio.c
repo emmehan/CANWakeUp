@@ -84,14 +84,14 @@ void gpio_init()
     GPIOA->CRH &= ~(GPIO_CRH_CNF10_1 | GPIO_CRH_CNF10_0);
 
     /*****************************************************
-     * Configure Pin PA11 as alternate function (CAN_RX)
+     * Configure Pin PA11 as alternate function (CAN_ZX)
      *****************************************************/
     GPIOA->CRH |= (GPIO_CRH_MODE11_1 | GPIO_CRH_MODE11_0);
     GPIOA->CRH |= (GPIO_CRH_CNF11_1);
     GPIOA->CRH &= ~(GPIO_CRH_CNF11_0);
 
     /*****************************************************
-     * Configure Pin PA12 as alternate function (CAN_TX)
+     * Configure Pin PA12 as alternate function (CAN_RX)
      *****************************************************/
     GPIOA->CRH |= (GPIO_CRH_MODE12_1 | GPIO_CRH_MODE12_0);
     GPIOA->CRH |= (GPIO_CRH_CNF12_1);

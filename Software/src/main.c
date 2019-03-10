@@ -34,12 +34,9 @@ struct {
   \details  Initializes GPIO module.
             Initializes TIMER module.
             Enabled NVIC interrupt for timer TIM2.
-            Set signals LED_RED and LED_GREEN to off (BITACTION_SET).
-            Toggles LED_RED in static period.
  */
 int main()
 {
-    uint32_t prev_counter_tick = 0;
     
     /* reset flags */
     flags.led_green = 0;
@@ -78,7 +75,7 @@ void TIM2_IRQHandler(void)
 
     /* read TIM2 status register */
     interrupt_register = TIM2->SR;
-
+ 
     if(interrupt_register & TIM_SR_UIF)
     {
 
