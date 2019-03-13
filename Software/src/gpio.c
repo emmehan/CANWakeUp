@@ -74,9 +74,6 @@ void gpio_init()
     GPIOA->CRH &= ~(GPIO_CRH_CNF8);
     GPIOA->CRH |= (GPIO_CRH_CNF8_1);
 
-    /* set MCO clock output to SYSCLK = 32MHz */
-    RCC->CFGR |= RCC_CFGR_MCO_SYSCLK;
-
     /*****************************************************
      * Configure Pin PA10 as GPIO output (CAN_SILENT_MODE)
      *****************************************************/
@@ -84,16 +81,17 @@ void gpio_init()
     GPIOA->CRH &= ~(GPIO_CRH_CNF10_1 | GPIO_CRH_CNF10_0);
 
     /*****************************************************
-     * Configure Pin PA11 as alternate function (CAN_ZX)
+     * Configure Pin PA11 as alternate function (CAN_RX)
      *****************************************************/
-    GPIOA->CRH |= (GPIO_CRH_MODE11_1 | GPIO_CRH_MODE11_0);
-    GPIOA->CRH |= (GPIO_CRH_CNF11_1);
-    GPIOA->CRH &= ~(GPIO_CRH_CNF11_0);
+    GPIOA->CRH &= ~(GPIO_CRH_MODE11_1 | GPIO_CRH_MODE11_0);
+    GPIOA->CRH &= ~(GPIO_CRH_CNF11_1);
+    GPIOA->CRH |= (GPIO_CRH_CNF11_0);
 
     /*****************************************************
-     * Configure Pin PA12 as alternate function (CAN_RX)
+     * Configure Pin PA12 as alternate function (CAN_TX)
      *****************************************************/
-    GPIOA->CRH |= (GPIO_CRH_MODE12_1 | GPIO_CRH_MODE12_0);
+    GPIOA->CRH &= ~(GPIO_CRH_MODE12_1);
+    GPIOA->CRH |= GPIO_CRH_MODE12_0;
     GPIOA->CRH |= (GPIO_CRH_CNF12_1);
     GPIOA->CRH &= ~(GPIO_CRH_CNF12_0);
 }
@@ -161,7 +159,7 @@ BITACTION_t gpio_read_button(void)
     
     /* read button state */
     portvals = GPIOA->IDR;
-    if(portvals & (GPIO_IDR_IDR4))
+    if(portvals & (GPIO_IDR_IDR2))
     {
         retval = BITACTION_SET;
     }

@@ -40,6 +40,7 @@ void gpio_init(void);
 void gpio_set_led_red(BITACTION_t);
 void gpio_set_led_green(BITACTION_t);
 BITACTION_t gpio_read_button(void);
+void gpio_set_can_silent_mode(BITACTION_t);
 
 /**
   * @}

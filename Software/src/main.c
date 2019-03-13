@@ -49,15 +49,28 @@ int main()
     /* Enable Timer2 interrupt */
     NVIC_EnableIRQ(TIM2_IRQn);
 
-    /* Start 1ms timer */
-    timer_1ms_start();
-
-    gpio_set_led_green(BITACTION_SET);
-    gpio_set_led_red(BITACTION_SET);
+    /* Switch off LEDs */
+    gpio_set_led_green(BITACTION_RESET);
+    gpio_set_led_red(BITACTION_RESET);
 
     while(1)
     {
- 
+        /* read Switch */
+        if(BITACTION_RESET == gpio_read_button())
+        {
+            /* Start 1ms timer */
+            timer_1ms_start();
+        }
+        else
+        {
+            /* Stop 1ms timer */
+            timer_1ms_stop();
+
+            /* Switch off LEDs */
+            gpio_set_led_green(BITACTION_RESET);
+            gpio_set_led_red(BITACTION_RESET);
+
+        }
     }
 
 }
