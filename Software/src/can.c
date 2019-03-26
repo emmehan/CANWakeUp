@@ -51,7 +51,9 @@ void can_init(void)
    *  - disable CAN freeze while debugging
    */
   CAN1->MCR &= ~(CAN_MCR_NART  | CAN_MCR_DBF);
-  CAN1->MCR |= ( CAN_MCR_AWUM | CAN_MCR_TXFP | CAN_MCR_ABOM );
+  //CAN1->MCR |= CAN_MCR_AWUM;  //disabled because else CAN1 won't leave INIT mode?
+  CAN1->MCR |= CAN_MCR_TXFP;
+  CAN1->MCR |= CAN_MCR_ABOM;
 
 
   /* Set CAN bit timing
@@ -94,7 +96,7 @@ void can_init(void)
   CAN1->FMR |= CAN_FMR_FINIT;
 
   /* Disable CAN filter initialization mode */
-
+  CAN1->FMR &= ~(CAN_FMR_FINIT);
 
 
 }
