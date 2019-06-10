@@ -20,7 +20,4 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "stm32f103xb.h"
-#include "gpio.h"
-#include "timer.h"
-#include "can.h"
+#include "stm32f1xx_hal.h"

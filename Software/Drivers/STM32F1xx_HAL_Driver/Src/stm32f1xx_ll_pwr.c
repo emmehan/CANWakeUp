@@ -1,17 +1,8 @@
 /**
   ******************************************************************************
-  * @file    ADC/ADC_Regular_injected_groups/Src/main.c
+  * @file    stm32f1xx_ll_pwr.c
   * @author  MCD Application Team
-  * @version V1.5.0
-  * @date    14-April-2017
-  * @brief   This example provides a short description of how to use the ADC
-  *          peripheral to perform conversions using the 2 ADC groups: 
-  *          group regular for ADC conversions on main stream and 
-  *          group injected for ADC conversions limited on specific events
-  *          (conversions injected within main conversions stream). Other 
-  *          peripherals used: DMA, TIM (ADC group regular conversions 
-  *          triggered  by TIM, ADC group regular conversion data
-  *          transfered by DMA).
+  * @brief   PWR LL module driver.
   ******************************************************************************
   * @attention
   *
@@ -41,51 +32,70 @@
   *
   ******************************************************************************
   */
+#if defined(USE_FULL_LL_DRIVER)
 
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+#include "stm32f1xx_ll_pwr.h"
+#include "stm32f1xx_ll_bus.h"
 
-GPIO_InitTypeDef GPIO_Led_Red = 
+/** @addtogroup STM32F1xx_LL_Driver
+  * @{
+  */
+
+#if defined(PWR)
+
+/** @defgroup PWR_LL PWR
+  * @{
+  */
+
+/* Private types -------------------------------------------------------------*/
+/* Private variables ---------------------------------------------------------*/
+/* Private constants ---------------------------------------------------------*/
+/* Private macros ------------------------------------------------------------*/
+/* Private function prototypes -----------------------------------------------*/
+
+/* Exported functions --------------------------------------------------------*/
+/** @addtogroup PWR_LL_Exported_Functions
+  * @{
+  */
+
+/** @addtogroup PWR_LL_EF_Init
+  * @{
+  */
+
+/**
+  * @brief  De-initialize the PWR registers to their default reset values.
+  * @retval An ErrorStatus enumeration value:
+  *          - SUCCESS: PWR registers are de-initialized
+  *          - ERROR: not applicable
+  */
+ErrorStatus LL_PWR_DeInit(void)
 {
-  .Pin  = GPIO_PIN_0,
-  .Mode = GPIO_MODE_OUTPUT_PP,
-  .Pull = GPIO_PULLDOWN,
-  .Speed  = GPIO_SPEED_FREQ_LOW,
-};
+  /* Force reset of PWR clock */
+  LL_APB1_GRP1_ForceReset(LL_APB1_GRP1_PERIPH_PWR);
 
-GPIO_InitTypeDef GPIO_Led_Green = 
-{
-  .Pin  = GPIO_PIN_1,
-  .Mode = GPIO_MODE_OUTPUT_PP,
-  .Pull = GPIO_PULLDOWN,
-  .Speed  = GPIO_SPEED_FREQ_LOW,
-};
+  /* Release reset of PWR clock */
+  LL_APB1_GRP1_ReleaseReset(LL_APB1_GRP1_PERIPH_PWR);
 
-int main(void)
-{
-  /* STM32F1xx HAL library initialization:
-       - Configure the Flash prefetch
-       - Systick timer is configured by default as source of time base, but user 
-         can eventually implement his proper time base source (a general purpose 
-         timer for example or other time source), keeping in mind that Time base 
-         duration should be kept 1ms since PPP_TIMEOUT_VALUEs are defined and 
-         handled in milliseconds basis.
-       - Set NVIC Group Priority to 4
-       - Low Level Initialization
-     */
-  HAL_Init();
-
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-
-  HAL_GPIO_Init(GPIOA, &GPIO_Led_Red);
-  HAL_GPIO_Init(GPIOA, &GPIO_Led_Green);
-  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
-  
-  /* Infinite loop */
-  while (1)
-  {
-    for(int i = 0; i < 2000000; i++);
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
-  }
+  return SUCCESS;
 }
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+#endif /* defined(PWR) */
+/**
+  * @}
+  */
+
+#endif /* USE_FULL_LL_DRIVER */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

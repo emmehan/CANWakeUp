@@ -1,17 +1,8 @@
 /**
   ******************************************************************************
-  * @file    ADC/ADC_Regular_injected_groups/Src/main.c
+  * @file    stm32f1xx_ll_crc.c
   * @author  MCD Application Team
-  * @version V1.5.0
-  * @date    14-April-2017
-  * @brief   This example provides a short description of how to use the ADC
-  *          peripheral to perform conversions using the 2 ADC groups: 
-  *          group regular for ADC conversions on main stream and 
-  *          group injected for ADC conversions limited on specific events
-  *          (conversions injected within main conversions stream). Other 
-  *          peripherals used: DMA, TIM (ADC group regular conversions 
-  *          triggered  by TIM, ADC group regular conversion data
-  *          transfered by DMA).
+  * @brief   CRC LL module driver.
   ******************************************************************************
   * @attention
   *
@@ -41,51 +32,93 @@
   *
   ******************************************************************************
   */
+#if defined(USE_FULL_LL_DRIVER)
 
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+#include "stm32f1xx_ll_crc.h"
+#include "stm32f1xx_ll_bus.h"
 
-GPIO_InitTypeDef GPIO_Led_Red = 
+#ifdef  USE_FULL_ASSERT
+#include "stm32_assert.h"
+#else
+#define assert_param(expr) ((void)0U)
+#endif
+
+/** @addtogroup STM32F1xx_LL_Driver
+  * @{
+  */
+
+#if defined (CRC)
+
+/** @addtogroup CRC_LL
+  * @{
+  */
+
+/* Private types -------------------------------------------------------------*/
+/* Private variables ---------------------------------------------------------*/
+/* Private constants ---------------------------------------------------------*/
+/* Private macros ------------------------------------------------------------*/
+/* Private function prototypes -----------------------------------------------*/
+
+/* Exported functions --------------------------------------------------------*/
+/** @addtogroup CRC_LL_Exported_Functions
+  * @{
+  */
+
+/** @addtogroup CRC_LL_EF_Init
+  * @{
+  */
+
+/**
+  * @brief  De-initialize CRC registers (Registers restored to their default values).
+  * @param  CRCx CRC Instance
+  * @retval An ErrorStatus enumeration value:
+  *          - SUCCESS: CRC registers are de-initialized
+  *          - ERROR: CRC registers are not de-initialized
+  */
+ErrorStatus LL_CRC_DeInit(CRC_TypeDef *CRCx)
 {
-  .Pin  = GPIO_PIN_0,
-  .Mode = GPIO_MODE_OUTPUT_PP,
-  .Pull = GPIO_PULLDOWN,
-  .Speed  = GPIO_SPEED_FREQ_LOW,
-};
+  ErrorStatus status = SUCCESS;
 
-GPIO_InitTypeDef GPIO_Led_Green = 
-{
-  .Pin  = GPIO_PIN_1,
-  .Mode = GPIO_MODE_OUTPUT_PP,
-  .Pull = GPIO_PULLDOWN,
-  .Speed  = GPIO_SPEED_FREQ_LOW,
-};
+  /* Check the parameters */
+  assert_param(IS_CRC_ALL_INSTANCE(CRCx));
 
-int main(void)
-{
-  /* STM32F1xx HAL library initialization:
-       - Configure the Flash prefetch
-       - Systick timer is configured by default as source of time base, but user 
-         can eventually implement his proper time base source (a general purpose 
-         timer for example or other time source), keeping in mind that Time base 
-         duration should be kept 1ms since PPP_TIMEOUT_VALUEs are defined and 
-         handled in milliseconds basis.
-       - Set NVIC Group Priority to 4
-       - Low Level Initialization
-     */
-  HAL_Init();
-
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-
-  HAL_GPIO_Init(GPIOA, &GPIO_Led_Red);
-  HAL_GPIO_Init(GPIOA, &GPIO_Led_Green);
-  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
-  
-  /* Infinite loop */
-  while (1)
+  if (CRCx == CRC)
   {
-    for(int i = 0; i < 2000000; i++);
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
+
+    /* Reset the CRC calculation unit */
+    LL_CRC_ResetCRCCalculationUnit(CRCx);
+
+    /* Reset IDR register */
+    LL_CRC_Write_IDR(CRCx, 0x00U);
   }
+  else
+  {
+    status = ERROR;
+  }
+
+  return (status);
 }
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+
+#endif /* defined (CRC) */
+
+/**
+  * @}
+  */
+
+#endif /* USE_FULL_LL_DRIVER */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+

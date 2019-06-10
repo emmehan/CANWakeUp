@@ -13,9 +13,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-################
-# Configuration
-################
+#################
+# Configuration	#
+#################
 
 #Executable file
 MAIN = CANWakeUp
@@ -26,9 +26,20 @@ OUT_DIR = build
 # Documentation directory
 DOC_DIR = doc
 
-######################
-# Build options/flags
-######################
+HAL_SRC_DIR				= ./Drivers/STM32F1xx_HAL_Driver/Src
+HAL_INC_DIR				= ./Drivers/STM32F1xx_HAL_Driver/Inc
+
+CMSIS_SRC_DIR 			= ./Drivers/CMSIS/Device/ST/STM32F1xx/Source
+CMSIS_DEVICE_INC_DIR	= ./Drivers/CMSIS/Device/ST/STM32F1xx/Include 
+CMSIS_INC_DIR			= ./Drivers/CMSIS/Include
+
+APP_SRC_DIR				= ./src
+APP_INC_DIR				= ./include
+
+
+#######################
+# Build options/flags #
+#######################
 
 #Compiler
 CC = arm-none-eabi-gcc
@@ -40,52 +51,75 @@ OBJCPY = arm-none-eabi-objcopy
 CFLAGS = -Wall -mcpu=cortex-m3 -mlittle-endian -mthumb -DSTM32F103xB -Os -g
 
 #Include directories
-INCLUDES = -IDrivers/CMSIS/Include -IDrivers/CMSIS/Device/ST/STM32F1xx/Include -Iinclude
+INCLUDES = -I$(HAL_INC_DIR) -I$(CMSIS_DEVICE_INC_DIR) -I$(CMSIS_INC_DIR) -I$(APP_INC_DIR)
 
 #directory for linker file
 LFILE = ld/STM32F103XB_FLASH.ld
 
 #Linker flags
-LFLAGS = -mcpu=cortex-m3 -mlittle-endian -mthumb -DSTM32F103xB -T$(LFILE) -g -Wl,--gc-sections 
+LFLAGS = -mcpu=cortex-m3 -mlittle-endian -mthumb -DSTM32F103xB -T$(LFILE) -g -Wl,--gc-sections
 
-################
-# Utility stuff
-################
-
+#################
+# Build rules   #
+# Utility stuff #
+#################
 MKDIR_CMD = mkdir -p
 CREATE_DOC = doxygen ./$(DOC_DIR)/Doxyfile
 
-#############
-#Build rules
-#############
-
-.PHONY: doc
-
-all: clean create_out_directory $(MAIN)
-	echo Done!
-
-$(MAIN): startup user_files
-	$(CC) $(INCLUDES) $(OUT_DIR)/main.o $(OUT_DIR)/system_stm32f10x.o $(OUT_DIR)/startup_stm32f103xb.o $(OUT_DIR)/gpio.o $(OUT_DIR)/timer.o $(OUT_DIR)/can.o $(LFLAGS) -o $(OUT_DIR)/$(MAIN).elf
-	$(OBJCPY) -Oihex $(OUT_DIR)/$(MAIN).elf $(OUT_DIR)/$(MAIN).hex
-
-startup:
-	$(CC) $(CFLAGS) $(INCLUDES) -c ./Drivers/CMSIS/Device/ST/STM32F1xx/Source/startup_stm32f103xb.s -o build/startup_stm32f103xb.o
-
-user_files:
-	$(CC) $(CFLAGS) $(INCLUDES) -c ./src/main.c -o $(OUT_DIR)/main.o
-	$(CC) $(CFLAGS) $(INCLUDES) -c ./src/system_stm32f10x.c -o $(OUT_DIR)/system_stm32f10x.o
-	$(CC) $(CFLAGS) $(INCLUDES) -c ./src/gpio.c -o $(OUT_DIR)/gpio.o
-	$(CC) $(CFLAGS) $(INCLUDES) -c ./src/timer.c -o $(OUT_DIR)/timer.o
-	$(CC) $(CFLAGS) $(INCLUDES) -c ./src/can.c -o $(OUT_DIR)/can.o
-
 clean:
-	rm -rf ./$(OUT_DIR)/*
+	rm -rf ./$(OUT_DIR)
 	rm -rf ./$(DOC_DIR)/html
 
 create_out_directory: $(OUT_DIR)
+
+.PHONY: doc
 
 doc:
 	$(CREATE_DOC)
 
 $(OUT_DIR):
 	$(MKDIR_CMD) $(OUT_DIR)
+	$(MKDIR_CMD) $(OUT_DIR)/$(HAL_SRC_DIR)
+	$(MKDIR_CMD) $(OUT_DIR)/$(CMSIS_SRC_DIR)
+	$(MKDIR_CMD) $(OUT_DIR)/$(APP_SRC_DIR)
+
+#################
+# Build rules	#
+# STM32F1xx HAL	#
+#################
+HAL_SOURCES := $(wildcard $(HAL_SRC_DIR)/*.c)
+HAL_OBJECTS := $(HAL_SOURCES:$(HAL_SRC_DIR)/%.c=$(OUT_DIR)/$(HAL_SRC_DIR)/%.o)
+
+$(HAL_OBJECTS):	$(OUT_DIR)/$(HAL_SRC_DIR)/%.o : $(HAL_SRC_DIR)/%.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+#################
+# Build rules	#
+# Startup/CMSIS	#
+#################
+STARTUP_SOURCES := $(wildcard $(CMSIS_SRC_DIR)/*.s)
+STARTUP_OBJECTS := $(STARTUP_SOURCES:$(CMSIS_SRC_DIR)/%.s=$(OUT_DIR)/$(CMSIS_SRC_DIR)/%.o)
+
+$(STARTUP_OBJECTS): $(OUT_DIR)/$(CMSIS_SRC_DIR)/%.o : $(CMSIS_SRC_DIR)/%.s
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+#################
+# Build rules	#
+# Application	#
+#################
+APP_SOURCES := $(wildcard $(APP_SRC_DIR)/*.c)
+APP_OBJECTS := $(APP_SOURCES:$(APP_SRC_DIR)/%.c=$(OUT_DIR)/$(APP_SRC_DIR)/%.o)
+
+$(APP_OBJECTS): $(OUT_DIR)/$(APP_SRC_DIR)/%.o : $(APP_SRC_DIR)/%.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+###############
+# Build rules #
+# Main		  #
+###############
+all: clean create_out_directory $(MAIN)
+	echo Done!
+
+$(MAIN): $(HAL_OBJECTS) $(STARTUP_OBJECTS) $(APP_OBJECTS)
+	$(CC) $(INCLUDES) $(HAL_OBJECTS) $(STARTUP_OBJECTS) $(LFLAGS) $(APP_OBJECTS) -o $(OUT_DIR)/$(MAIN).elf
+	$(OBJCPY) -Oihex $(OUT_DIR)/$(MAIN).elf $(OUT_DIR)/$(MAIN).hex

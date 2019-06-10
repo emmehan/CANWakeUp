@@ -11,7 +11,7 @@
         {
             "label": "Build debug",
             "type": "shell",
-            "command": "make MAIN=$APP_NAME",
+            "command": "make all MAIN=$APP_NAME",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -26,7 +26,7 @@
             "command": "openocd",
             "args": [
                 "-f",
-                "interface/stlink-v2-1.cfg",
+                "interface/stlink-v2.cfg",
                 "-f",
                 "target/stm32f1x.cfg",
                 "-c",

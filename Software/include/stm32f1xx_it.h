@@ -1,17 +1,10 @@
 /**
   ******************************************************************************
-  * @file    ADC/ADC_Regular_injected_groups/Src/main.c
+  * @file    ADC/ADC_Regular_injected_groups/Inc/stm32f1xx_it.h
   * @author  MCD Application Team
   * @version V1.5.0
   * @date    14-April-2017
-  * @brief   This example provides a short description of how to use the ADC
-  *          peripheral to perform conversions using the 2 ADC groups: 
-  *          group regular for ADC conversions on main stream and 
-  *          group injected for ADC conversions limited on specific events
-  *          (conversions injected within main conversions stream). Other 
-  *          peripherals used: DMA, TIM (ADC group regular conversions 
-  *          triggered  by TIM, ADC group regular conversion data
-  *          transfered by DMA).
+  * @brief   This file contains the headers of the interrupt handlers.
   ******************************************************************************
   * @attention
   *
@@ -42,50 +35,42 @@
   ******************************************************************************
   */
 
+/* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef __STM32F1xx_IT_H
+#define __STM32F1xx_IT_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+/* Exported types ------------------------------------------------------------*/
+/* Exported constants --------------------------------------------------------*/
+/* Exported macro ------------------------------------------------------------*/
+/* Exported functions ------------------------------------------------------- */
 
-GPIO_InitTypeDef GPIO_Led_Red = 
-{
-  .Pin  = GPIO_PIN_0,
-  .Mode = GPIO_MODE_OUTPUT_PP,
-  .Pull = GPIO_PULLDOWN,
-  .Speed  = GPIO_SPEED_FREQ_LOW,
-};
+void NMI_Handler(void);
+void HardFault_Handler(void);
+void MemManage_Handler(void);
+void BusFault_Handler(void);
+void UsageFault_Handler(void);
+void SVC_Handler(void);
+void DebugMon_Handler(void);
+void PendSV_Handler(void);
+void SysTick_Handler(void);
+void EXTI0_IRQHandler(void);
 
-GPIO_InitTypeDef GPIO_Led_Green = 
-{
-  .Pin  = GPIO_PIN_1,
-  .Mode = GPIO_MODE_OUTPUT_PP,
-  .Pull = GPIO_PULLDOWN,
-  .Speed  = GPIO_SPEED_FREQ_LOW,
-};
+void ADCx_IRQHandler(void);
+void ADCx_DMA_IRQHandler(void);
 
-int main(void)
-{
-  /* STM32F1xx HAL library initialization:
-       - Configure the Flash prefetch
-       - Systick timer is configured by default as source of time base, but user 
-         can eventually implement his proper time base source (a general purpose 
-         timer for example or other time source), keeping in mind that Time base 
-         duration should be kept 1ms since PPP_TIMEOUT_VALUEs are defined and 
-         handled in milliseconds basis.
-       - Set NVIC Group Priority to 4
-       - Low Level Initialization
-     */
-  HAL_Init();
+#if defined(WAVEFORM_VOLTAGE_GENERATION_FOR_TEST)
+void TIM6_DAC_IRQHandler(void);
+#endif /* WAVEFORM_VOLTAGE_GENERATION_FOR_TEST */
 
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-
-  HAL_GPIO_Init(GPIOA, &GPIO_Led_Red);
-  HAL_GPIO_Init(GPIOA, &GPIO_Led_Green);
-  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
-  
-  /* Infinite loop */
-  while (1)
-  {
-    for(int i = 0; i < 2000000; i++);
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
-  }
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* __STM32F1xx_IT_H */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

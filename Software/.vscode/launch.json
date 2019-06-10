@@ -13,7 +13,7 @@
             "servertype": "openocd",
             "device": "STM32F103C8T6",
             "configFiles": [
-                "interface/stlink-v2-1.cfg",
+                "interface/stlink-v2.cfg",
                 "target/stm32f1x.cfg",
             ],
             "runToMain": true
