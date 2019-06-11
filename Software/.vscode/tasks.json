@@ -11,7 +11,7 @@
         {
             "label": "Build debug",
             "type": "shell",
-            "command": "make all MAIN=$APP_NAME",
+            "command": "make all MAIN=$env:APP_NAME",
             "group": {
                 "kind": "build",
                 "isDefault": true
