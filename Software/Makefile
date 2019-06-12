@@ -117,7 +117,7 @@ $(APP_OBJECTS): $(OUT_DIR)/$(APP_SRC_DIR)/%.o : $(APP_SRC_DIR)/%.c
 # Build rules #
 # Main		  #
 ###############
-all: clean create_out_directory $(MAIN)
+all: create_out_directory $(MAIN)
 	echo Done!
 
 $(MAIN): $(HAL_OBJECTS) $(STARTUP_OBJECTS) $(APP_OBJECTS)

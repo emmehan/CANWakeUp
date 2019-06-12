@@ -31,8 +31,9 @@
                 "target/stm32f1x.cfg",
                 "-c",
                 "\"program",
-                "./build/$APP_NAME.hex",
+                "./build/$env:APP_NAME.elf",
                 "verify",
+                "reset",
                 "exit\""
             ],
             "problemMatcher": []
