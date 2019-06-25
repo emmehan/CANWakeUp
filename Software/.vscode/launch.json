@@ -16,6 +16,7 @@
                 "interface/stlink-v2.cfg",
                 "target/stm32f1x.cfg",
             ],
+            "preLaunchTask": "Flash",
             "runToMain": true
         }
     ]

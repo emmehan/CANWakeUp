@@ -34,7 +34,7 @@ CMSIS_DEVICE_INC_DIR	= ./Drivers/CMSIS/Device/ST/STM32F1xx/Include
 CMSIS_INC_DIR			= ./Drivers/CMSIS/Include
 
 APP_SRC_DIR				= ./src
-APP_INC_DIR				= ./include
+APP_INC_DIR				= ./inc
 
 
 #######################

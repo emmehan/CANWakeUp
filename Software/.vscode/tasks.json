@@ -2,16 +2,11 @@
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
     "version": "2.0.0",
-    "options": {
-        "env": {
-            "APP_NAME": "CANWakeUp"
-        }
-    },
     "tasks": [
         {
             "label": "Build debug",
             "type": "shell",
-            "command": "make all MAIN=$env:APP_NAME",
+            "command": "make all MAIN=CANWakeUp",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -21,6 +16,10 @@
             ]
         },
         {
+            "options": {
+                "cwd": "C:\\Projekte\\tmp\\CANWakeUp\\Software", 
+                "console": "integratedTerminal" 
+            },
             "label": "Flash",
             "type": "shell",
             "command": "openocd",
@@ -30,11 +29,7 @@
                 "-f",
                 "target/stm32f1x.cfg",
                 "-c",
-                "\"program",
-                "./build/$env:APP_NAME.elf",
-                "verify",
-                "reset",
-                "exit\""
+                "'\"program ./build/CANWakeUp.elf verify reset exit\"'"
             ],
             "problemMatcher": []
         },

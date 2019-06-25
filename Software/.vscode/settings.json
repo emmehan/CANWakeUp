@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "gpio.h": "c",
-        "main.h": "c",
-        "timer.h": "c"
-    }
-}
