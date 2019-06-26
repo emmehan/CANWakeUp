@@ -33,6 +33,9 @@ CMSIS_SRC_DIR 			= ./Drivers/CMSIS/Device/ST/STM32F1xx/Source
 CMSIS_DEVICE_INC_DIR	= ./Drivers/CMSIS/Device/ST/STM32F1xx/Include 
 CMSIS_INC_DIR			= ./Drivers/CMSIS/Include
 
+BSP_SRC_DIR				= ./Drivers/BSP/CANWakeup/src
+BSP_INC_DIR				= ./Drivers/BSP/CANWakeup/inc
+
 APP_SRC_DIR				= ./src
 APP_INC_DIR				= ./inc
 
@@ -48,10 +51,10 @@ CC = arm-none-eabi-gcc
 OBJCPY = arm-none-eabi-objcopy
 
 #General compiler flags
-CFLAGS = -Wall -mcpu=cortex-m3 -mlittle-endian -mthumb -DSTM32F103xB -Os -g
+CFLAGS = -Wall -mcpu=cortex-m3 -mlittle-endian -mthumb -DSTM32F103xB -g
 
 #Include directories
-INCLUDES = -I$(HAL_INC_DIR) -I$(CMSIS_DEVICE_INC_DIR) -I$(CMSIS_INC_DIR) -I$(APP_INC_DIR)
+INCLUDES = -I$(HAL_INC_DIR) -I$(CMSIS_DEVICE_INC_DIR) -I$(CMSIS_INC_DIR) -I$(BSP_INC_DIR) -I$(APP_INC_DIR)
 
 #directory for linker file
 LFILE = ld/STM32F103XB_FLASH.ld
@@ -81,6 +84,7 @@ $(OUT_DIR):
 	$(MKDIR_CMD) $(OUT_DIR)
 	$(MKDIR_CMD) $(OUT_DIR)/$(HAL_SRC_DIR)
 	$(MKDIR_CMD) $(OUT_DIR)/$(CMSIS_SRC_DIR)
+	$(MKDIR_CMD) $(OUT_DIR)/$(BSP_SRC_DIR)
 	$(MKDIR_CMD) $(OUT_DIR)/$(APP_SRC_DIR)
 
 #################
@@ -105,6 +109,16 @@ $(STARTUP_OBJECTS): $(OUT_DIR)/$(CMSIS_SRC_DIR)/%.o : $(CMSIS_SRC_DIR)/%.s
 
 #################
 # Build rules	#
+# BSP           #
+#################
+BSP_SOURCES := $(wildcard $(BSP_SRC_DIR)/*.c)
+BSP_OBJECTS := $(BSP_SOURCES:$(BSP_SRC_DIR)/%.c=$(OUT_DIR)/$(BSP_SRC_DIR)/%.o)
+
+$(BSP_OBJECTS): $(OUT_DIR)/$(BSP_SRC_DIR)/%.o : $(BSP_SRC_DIR)/%.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+#################
+# Build rules	#
 # Application	#
 #################
 APP_SOURCES := $(wildcard $(APP_SRC_DIR)/*.c)
@@ -120,6 +134,6 @@ $(APP_OBJECTS): $(OUT_DIR)/$(APP_SRC_DIR)/%.o : $(APP_SRC_DIR)/%.c
 all: create_out_directory $(MAIN)
 	echo Done!
 
-$(MAIN): $(HAL_OBJECTS) $(STARTUP_OBJECTS) $(APP_OBJECTS)
-	$(CC) $(INCLUDES) $(HAL_OBJECTS) $(STARTUP_OBJECTS) $(LFLAGS) $(APP_OBJECTS) -o $(OUT_DIR)/$(MAIN).elf
+$(MAIN): $(HAL_OBJECTS) $(STARTUP_OBJECTS) $(BSP_OBJECTS) $(APP_OBJECTS)
+	$(CC) $(INCLUDES) $(HAL_OBJECTS) $(STARTUP_OBJECTS) $(BSP_OBJECTS) $(LFLAGS) $(APP_OBJECTS) -o $(OUT_DIR)/$(MAIN).elf
 	$(OBJCPY) -Oihex $(OUT_DIR)/$(MAIN).elf $(OUT_DIR)/$(MAIN).hex

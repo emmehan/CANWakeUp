@@ -45,76 +45,14 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
+#define LOG(x)  BSP_COM_Print(&UART1_Handle, x)
+
 void SystemClock_Config(void);
-
-GPIO_InitTypeDef GPIO_Led_Red = 
-{
-  .Pin  = GPIO_PIN_0,
-  .Mode = GPIO_MODE_OUTPUT_PP,
-  .Pull = GPIO_PULLDOWN,
-  .Speed  = GPIO_SPEED_FREQ_HIGH,
-};
-
-GPIO_InitTypeDef GPIO_Led_Green = 
-{
-  .Pin  = GPIO_PIN_1,
-  .Mode = GPIO_MODE_OUTPUT_PP,
-  .Pull = GPIO_PULLDOWN,
-  .Speed  = GPIO_SPEED_FREQ_HIGH,
-};
-
-GPIO_InitTypeDef GPIO_SWITCH = 
-{
-  .Pin  = GPIO_PIN_2,
-  .Mode = GPIO_MODE_INPUT,
-  .Pull = GPIO_PULLUP,
-  .Speed  = GPIO_SPEED_FREQ_HIGH,
-};
 
 GPIO_InitTypeDef GPIO_Clk_Out = 
 {
   .Pin  = GPIO_PIN_8,
   .Mode = GPIO_MODE_AF_PP,
-  .Pull = GPIO_PULLDOWN,
-  .Speed  = GPIO_SPEED_FREQ_HIGH,
-};
-
-GPIO_InitTypeDef GPIO_UART_TX = 
-{
-  .Pin  = GPIO_PIN_9,
-  .Mode = GPIO_MODE_AF_PP,
-  .Pull = GPIO_PULLDOWN,
-  .Speed  = GPIO_SPEED_FREQ_HIGH,
-};
-
-GPIO_InitTypeDef GPIO_UART_RX = 
-{
-  .Pin  = GPIO_PIN_10,
-  .Mode = GPIO_MODE_AF_PP,
-  .Pull = GPIO_PULLDOWN,
-  .Speed  = GPIO_SPEED_FREQ_HIGH,
-};
-
-GPIO_InitTypeDef GPIO_CAN_TX = 
-{
-  .Pin  = GPIO_PIN_11,
-  .Mode = GPIO_MODE_AF_PP,
-  .Pull = GPIO_PULLDOWN,
-  .Speed  = GPIO_SPEED_FREQ_HIGH,
-};
-
-GPIO_InitTypeDef GPIO_CAN_RX = 
-{
-  .Pin  = GPIO_PIN_12,
-  .Mode = GPIO_MODE_AF_PP,
-  .Pull = GPIO_PULLDOWN,
-  .Speed  = GPIO_SPEED_FREQ_HIGH,
-};
-
-GPIO_InitTypeDef GPIO_CAN_S = 
-{
-  .Pin  = GPIO_PIN_15,
-  .Mode = GPIO_MODE_OUTPUT_PP,
   .Pull = GPIO_PULLDOWN,
   .Speed  = GPIO_SPEED_FREQ_HIGH,
 };
@@ -130,16 +68,28 @@ const UART_InitTypeDef UART1_Init =
   .OverSampling = UART_OVERSAMPLING_16,
 };
 
+const CAN_InitTypeDef CAN1_Init = 
+{
+  .Prescaler = 4,
+  .Mode = CAN_MODE_NORMAL,
+  .SyncJumpWidth = CAN_SJW_1TQ,
+  .TimeSeg1 = CAN_BS1_15TQ,
+  .TimeSeg2 = CAN_BS1_2TQ,
+  .TimeTriggeredMode = DISABLE,
+  .AutoBusOff = DISABLE,
+  .AutoWakeUp = ENABLE,
+  .AutoRetransmission = DISABLE,
+  .ReceiveFifoLocked = DISABLE,
+  .TransmitFifoPriority = ENABLE,
+};
+
 int main(void)
 {
   uint8_t uart1_tx_buffer[100];
   uint8_t uart1_rx_buffer[100];
-  uint8_t uart_tx_switch_on[] = { 'S', 'w', 'i', 't', 'c', 'h', ' ', 'O', 'N', ' ', '\r' };
-  uint8_t uart_tx_switch_off[] = { 'S', 'w', 'i', 't', 'c', 'h', ' ', 'O', 'F', 'F', '\r'};
 
   UART_HandleTypeDef UART1_Handle = 
   {
-    .Instance     = USART1,
     .Init         = UART1_Init,
     .pTxBuffPtr   = uart1_tx_buffer,
     .TxXferSize   = 100,
@@ -149,51 +99,56 @@ int main(void)
     .RxXferCount  = 1
   };
 
+  CAN_HandleTypeDef CAN1_Handle = 
+  {
+    .Init = CAN1_Init
+  };
+
+  CAN_TxHeaderTypeDef msg_can_tx_header = {
+    .StdId  = 0x12,
+    .IDE    = CAN_ID_STD,
+    .RTR    = CAN_RTR_DATA,
+    .DLC    = 8,
+    .TransmitGlobalTime = DISABLE
+  };
+
+  uint8_t msg_can_tx_data[] = 
+  {
+    0x11, 0x22, 0x33, 0x44,
+    0x55, 0x66, 0x77, 0x88
+  };
+
+  HAL_StatusTypeDef status_can_tx = HAL_ERROR;
+  uint32_t can_tx_mailbox;
+
   SystemClock_Config();
-  /* STM32F1xx HAL library initialization:
-       - Configure the Flash prefetch
-       - Systick timer is configured by default as source of time base, but user 
-         can eventually implement his proper time base source (a general purpose 
-         timer for example or other time source), keeping in mind that Time base 
-         duration should be kept 1ms since PPP_TIMEOUT_VALUEs are defined and 
-         handled in milliseconds basis.
-       - Set NVIC Group Priority to 4
-       - Low Level Initialization
-     */
   HAL_Init();
 
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  HAL_GPIO_Init(GPIOA, &GPIO_Led_Red);
-  HAL_GPIO_Init(GPIOA, &GPIO_Led_Green);
-  HAL_GPIO_Init(GPIOA, &GPIO_SWITCH);
-  HAL_GPIO_Init(GPIOA, &GPIO_Clk_Out);
-  HAL_GPIO_Init(GPIOA, &GPIO_UART_TX);
-  HAL_GPIO_Init(GPIOA, &GPIO_UART_RX);
-  HAL_GPIO_Init(GPIOA, &GPIO_CAN_TX);
-  HAL_GPIO_Init(GPIOA, &GPIO_CAN_RX);
-  HAL_GPIO_Init(GPIOA, &GPIO_CAN_S);
+  BSP_LED_Init(LED_RED);
+  BSP_LED_Init(LED_GREEN);
 
-  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
+  BSP_COM_Init(COM0, &UART1_Handle);
 
-  HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_SYSCLK, RCC_MCODIV_1);
+  BSP_CAN_COM_Init(CAN_COM0, &CAN1_Handle);
 
-  __HAL_RCC_USART1_CLK_ENABLE();
-  HAL_UART_Init(&UART1_Handle);
-  
+  status_can_tx = HAL_CAN_Start(&CAN1_Handle);
+
+  status_can_tx = HAL_CAN_AddTxMessage(&CAN1_Handle, &msg_can_tx_header, msg_can_tx_data, &can_tx_mailbox);
+
   /* Infinite loop */
   while (1)
   {
-    HAL_Delay(500);
-    
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
-    if( GPIO_PIN_RESET == HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2) )
+    HAL_Delay(100);
+    BSP_LED_Toggle(LED_GREEN);
+    BSP_LED_Toggle(LED_RED);
+    if(GPIO_PIN_SET == BSP_SW_GetState(SWITCH_USER))
     {
-      HAL_UART_Transmit(&UART1_Handle, uart_tx_switch_off, sizeof(uart_tx_switch_off)/sizeof(uint8_t), 100000);
+      LOG("ON \r");
+      status_can_tx = HAL_CAN_AddTxMessage(&CAN1_Handle, &msg_can_tx_header, msg_can_tx_data, &can_tx_mailbox);
     }
     else
     {
-      HAL_UART_Transmit(&UART1_Handle, uart_tx_switch_on, sizeof(uart_tx_switch_on)/sizeof(uint8_t), 100000);
+      LOG("OFF\r");
     }
   }
 }
