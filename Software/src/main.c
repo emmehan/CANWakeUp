@@ -65,7 +65,7 @@ const UART_InitTypeDef UART1_Init =
 const CAN_InitTypeDef CAN1_Init = 
 {
   .Prescaler = 4,
-  .Mode = CAN_MODE_NORMAL,
+  .Mode = CAN_MODE_LOOPBACK,
   .SyncJumpWidth = CAN_SJW_1TQ,
   .TimeSeg1 = CAN_BS1_15TQ,
   .TimeSeg2 = CAN_BS1_2TQ,
@@ -135,10 +135,10 @@ int main(void)
   HAL_NVIC_EnableIRQ(CAN1_SCE_IRQn);
 
   HAL_CAN_ActivateNotification(&CAN1_Handle,\
-    CAN_IT_TX_MAILBOX_EMPTY |\
-    CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_RX_FIFO0_FULL | CAN_IT_RX_FIFO0_OVERRUN |\
-    CAN_IT_RX_FIFO1_MSG_PENDING | CAN_IT_RX_FIFO1_FULL | CAN_IT_RX_FIFO1_OVERRUN |\
-    CAN_IT_BUSOFF | CAN_IT_ERROR_WARNING | CAN_IT_ERROR_PASSIVE | CAN_IT_ERROR
+    CAN_IT_TX_MAILBOX_EMPTY\
+    // | CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_RX_FIFO0_FULL | CAN_IT_RX_FIFO0_OVERRUN \
+    // | CAN_IT_RX_FIFO1_MSG_PENDING | CAN_IT_RX_FIFO1_FULL | CAN_IT_RX_FIFO1_OVERRUN \
+    // | CAN_IT_BUSOFF | CAN_IT_ERROR_WARNING | CAN_IT_ERROR_PASSIVE | CAN_IT_ERROR
   );
 
   status_can_tx = CAN_Send(&CAN1_Handle, &can_tx_mailbox);
@@ -151,8 +151,13 @@ int main(void)
       BSP_LOG("Sending \r\n");
       status_can_tx = CAN_Send(&CAN1_Handle, &can_tx_mailbox);
     }
+    else
+    {
+      BSP_LED_Off(LED_GREEN);
+    }
+    
 
-    HAL_Delay(100);
+    HAL_Delay(1000);
   }
 }
 
@@ -201,8 +206,8 @@ void SystemClock_Config(void)
 HAL_StatusTypeDef CAN_Send(CAN_HandleTypeDef *hcan, uint32_t *can_mailbox)
 {
   static CAN_TxHeaderTypeDef msg_can_tx_header = {
-    .StdId  = 0x12,
-    .IDE    = CAN_ID_STD,
+    .ExtId  = 0x14420FFF,
+    .IDE    = CAN_ID_EXT,
     .RTR    = CAN_RTR_DATA,
     .DLC    = 8,
     .TransmitGlobalTime = DISABLE
@@ -210,8 +215,8 @@ HAL_StatusTypeDef CAN_Send(CAN_HandleTypeDef *hcan, uint32_t *can_mailbox)
 
   static uint8_t msg_can_tx_data[] = 
   {
-    0x11, 0x22, 0x33, 0x44,
-    0x55, 0x66, 0x77, 0x88
+    0x55, 0xFF, 0xFF, 0xFF,
+    0xFF, 0xFF, 0xFF, 0xFF
   };
 
   return HAL_CAN_AddTxMessage(hcan, &msg_can_tx_header, msg_can_tx_data, can_mailbox);
@@ -240,6 +245,7 @@ void CAN1_SCE_IRQHandler(void)
 void HAL_CAN_TxMailbox0CompleteCallback(CAN_HandleTypeDef *hcan)
 {
   BSP_LED_Toggle(LED_GREEN);
+  BSP_LED_Off(LED_RED);
   BSP_LOG("CAN TX MB0 complete.\r\n");
 }
 
