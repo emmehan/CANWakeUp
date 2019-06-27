@@ -58,13 +58,11 @@ void BSP_LED_Init(Led_TypeDef Led)
     /* Configure the GPIO_LED pin */
     gpioinitstruct.Pin    = LED_PIN[Led];
     gpioinitstruct.Mode   = GPIO_MODE_OUTPUT_PP;
-    gpioinitstruct.Pull   = GPIO_NOPULL;
+    gpioinitstruct.Pull   = GPIO_PULLDOWN;
     gpioinitstruct.Speed  = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(LED_PORT[Led], &gpioinitstruct);
-
-    /* Reset PIN to switch off the LED */
-    HAL_GPIO_WritePin(LED_PORT[Led], LED_PIN[Led], GPIO_PIN_RESET);
 }
+
 
 void BSP_LED_On(Led_TypeDef Led)
 {
@@ -101,8 +99,9 @@ GPIO_PinState BSP_SW_GetState(Switch_TypeDef Switch)
     return HAL_GPIO_ReadPin(SWITCH_PORT[Switch], SWITCH_PIN[Switch]);
 }
 
-void BSP_COM_Init(COM_TypeDef Com, UART_HandleTypeDef *huart)
+HAL_StatusTypeDef BSP_COM_Init(COM_TypeDef Com, UART_HandleTypeDef *huart)
 {
+    HAL_StatusTypeDef ret_val = HAL_ERROR;
     GPIO_InitTypeDef  gpioinitstruct = {0};
 
     COMx_TX_GPIO_CLK_ENABLE(Com);
@@ -123,7 +122,8 @@ void BSP_COM_Init(COM_TypeDef Com, UART_HandleTypeDef *huart)
     HAL_GPIO_Init(COM_RX_PORT[Com], &gpioinitstruct);
 
     huart->Instance         = COM_USART[Com];
-    HAL_UART_Init(huart);
+    ret_val = HAL_UART_Init(huart);
+    return ret_val;
 }
 
 size_t strlen(char* string)
@@ -145,20 +145,23 @@ size_t strlen(char* string)
     return retval;
 }
 
-void BSP_COM_Print(UART_HandleTypeDef *huart, char *pData)
+HAL_StatusTypeDef BSP_COM_Print(UART_HandleTypeDef *huart, char *pData)
 {
+    HAL_StatusTypeDef ret_val = HAL_ERROR;
     if(pData)
     {
         if(strlen(pData))
         {
-            HAL_UART_Transmit(huart, (unsigned char*) pData, strlen(pData), 1000);
+            ret_val = HAL_UART_Transmit(huart, (unsigned char*) pData, strlen(pData), 1000);
         }
     }
+
+    return ret_val;
 }
 
-void BSP_CAN_COM_Init(CAN_COM_TypeDef Can, CAN_HandleTypeDef *hcan)
+HAL_StatusTypeDef BSP_CAN_COM_Init(CAN_COM_TypeDef Can, CAN_HandleTypeDef *hcan)
 {
-    HAL_StatusTypeDef status_CAN_init;
+    HAL_StatusTypeDef ret_val;
     GPIO_InitTypeDef  gpioinitstruct = {0};
     
     CAN_COMx_TX_GPIO_CLK_ENABLE(Can);
@@ -180,12 +183,33 @@ void BSP_CAN_COM_Init(CAN_COM_TypeDef Can, CAN_HandleTypeDef *hcan)
 
     /* Configure CAN S as Output PP */
     gpioinitstruct.Pin      = CAN_COM_S_PIN[Can];
-    gpioinitstruct.Mode     = GPIO_MODE_OUTPUT_OD;
+    gpioinitstruct.Mode     = GPIO_MODE_OUTPUT_PP;
     HAL_GPIO_Init(CAN_COM_S_PORT[Can], &gpioinitstruct);
+
     /* Set CAN S low -> Enable CAN Transceiver Normal/HighSpeed Mode */
-    // HAL_GPIO_WritePin(CAN_COM_S_PORT[Can], CAN_COM_S_PIN[Can], GPIO_PIN_RESET);
-    // HAL_GPIO_WritePin(CAN_COM_S_PORT[Can], CAN_COM_S_PIN[Can], GPIO_PIN_SET);
+    //TODO On test board not working...
+    HAL_GPIO_WritePin(CAN_COM_S_PORT[Can], CAN_COM_S_PIN[Can], GPIO_PIN_RESET);
 
     hcan->Instance         = CAN_COM[Can];
-    status_CAN_init = HAL_CAN_Init(hcan);
+    ret_val = HAL_CAN_Init(hcan);
+
+    return ret_val;
 }
+
+HAL_StatusTypeDef BSP_CAN_COM_FilterInit(CAN_COM_TypeDef Can, CAN_HandleTypeDef *hcan)
+{
+    CAN_FilterTypeDef canfilterstruct = {0};
+
+    canfilterstruct.FilterIdHigh = 0x0;
+    canfilterstruct.FilterIdLow = 0x0;
+    canfilterstruct.FilterMaskIdHigh = 0x0;
+    canfilterstruct.FilterMaskIdLow = 0x0;
+    canfilterstruct.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+    canfilterstruct.FilterBank = 0;
+    canfilterstruct.FilterMode = CAN_FILTERMODE_IDMASK;
+    canfilterstruct.FilterScale = CAN_FILTERSCALE_32BIT;
+    canfilterstruct.FilterActivation = CAN_FILTER_ENABLE;
+
+    return HAL_CAN_ConfigFilter(hcan, &canfilterstruct);
+}
+

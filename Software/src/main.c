@@ -45,17 +45,11 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-#define LOG(x)  BSP_COM_Print(&UART1_Handle, x)
+/* UART logging macro */
+#define BSP_LOG(x)  BSP_COM_Print(&UART1_Handle, x)
 
 void SystemClock_Config(void);
-
-GPIO_InitTypeDef GPIO_Clk_Out = 
-{
-  .Pin  = GPIO_PIN_8,
-  .Mode = GPIO_MODE_AF_PP,
-  .Pull = GPIO_PULLDOWN,
-  .Speed  = GPIO_SPEED_FREQ_HIGH,
-};
+HAL_StatusTypeDef CAN_Send(CAN_HandleTypeDef* hcan, uint32_t* can_mailbox);
 
 const UART_InitTypeDef UART1_Init = 
 {
@@ -83,73 +77,82 @@ const CAN_InitTypeDef CAN1_Init =
   .TransmitFifoPriority = ENABLE,
 };
 
+uint8_t uart1_tx_buffer[100];
+uint8_t uart1_rx_buffer[100];
+
+UART_HandleTypeDef UART1_Handle;
+CAN_HandleTypeDef CAN1_Handle;
+
 int main(void)
 {
-  uint8_t uart1_tx_buffer[100];
-  uint8_t uart1_rx_buffer[100];
+  UART1_Handle.Init         = UART1_Init;
+  UART1_Handle.pTxBuffPtr   = uart1_tx_buffer;
+  UART1_Handle.TxXferSize   = 100;
+  UART1_Handle.TxXferCount  = 1;
+  UART1_Handle.pRxBuffPtr   = uart1_rx_buffer;
+  UART1_Handle.RxXferSize   = 100;
+  UART1_Handle.RxXferCount  = 1;
 
-  UART_HandleTypeDef UART1_Handle = 
-  {
-    .Init         = UART1_Init,
-    .pTxBuffPtr   = uart1_tx_buffer,
-    .TxXferSize   = 100,
-    .TxXferCount  = 1,
-    .pRxBuffPtr   = uart1_rx_buffer,
-    .RxXferSize   = 100,
-    .RxXferCount  = 1
-  };
-
-  CAN_HandleTypeDef CAN1_Handle = 
-  {
-    .Init = CAN1_Init
-  };
-
-  CAN_TxHeaderTypeDef msg_can_tx_header = {
-    .StdId  = 0x12,
-    .IDE    = CAN_ID_STD,
-    .RTR    = CAN_RTR_DATA,
-    .DLC    = 8,
-    .TransmitGlobalTime = DISABLE
-  };
-
-  uint8_t msg_can_tx_data[] = 
-  {
-    0x11, 0x22, 0x33, 0x44,
-    0x55, 0x66, 0x77, 0x88
-  };
+  CAN1_Handle.Init = CAN1_Init;
 
   HAL_StatusTypeDef status_can_tx = HAL_ERROR;
   uint32_t can_tx_mailbox;
 
   SystemClock_Config();
-  HAL_Init();
+  if(HAL_OK != HAL_Init())
+  {
+    while(1){};
+  }
 
   BSP_LED_Init(LED_RED);
   BSP_LED_Init(LED_GREEN);
 
-  BSP_COM_Init(COM0, &UART1_Handle);
+  if(HAL_OK != BSP_COM_Init(COM0, &UART1_Handle))
+  {
+    while(1){};
+  }
 
-  BSP_CAN_COM_Init(CAN_COM0, &CAN1_Handle);
+  if(HAL_OK != BSP_CAN_COM_Init(CAN_COM0, &CAN1_Handle))
+  {
+    while(1){};
+  }
 
-  status_can_tx = HAL_CAN_Start(&CAN1_Handle);
+  if(HAL_OK != BSP_CAN_COM_FilterInit(CAN_COM0, &CAN1_Handle))
+  {
+    while(1){};
+  }
 
-  status_can_tx = HAL_CAN_AddTxMessage(&CAN1_Handle, &msg_can_tx_header, msg_can_tx_data, &can_tx_mailbox);
+  HAL_CAN_Start(&CAN1_Handle);
+
+  HAL_NVIC_SetPriority(USB_HP_CAN1_TX_IRQn, 1, 1);
+  HAL_NVIC_SetPriority(USB_LP_CAN1_RX0_IRQn, 1, 1);
+  HAL_NVIC_SetPriority(CAN1_RX1_IRQn, 1, 1);
+  HAL_NVIC_SetPriority(CAN1_SCE_IRQn, 1, 1);
+
+  HAL_NVIC_EnableIRQ(USB_HP_CAN1_TX_IRQn);
+  HAL_NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
+  HAL_NVIC_EnableIRQ(CAN1_RX1_IRQn);
+  HAL_NVIC_EnableIRQ(CAN1_SCE_IRQn);
+
+  HAL_CAN_ActivateNotification(&CAN1_Handle,\
+    CAN_IT_TX_MAILBOX_EMPTY |\
+    CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_RX_FIFO0_FULL | CAN_IT_RX_FIFO0_OVERRUN |\
+    CAN_IT_RX_FIFO1_MSG_PENDING | CAN_IT_RX_FIFO1_FULL | CAN_IT_RX_FIFO1_OVERRUN |\
+    CAN_IT_BUSOFF | CAN_IT_ERROR_WARNING | CAN_IT_ERROR_PASSIVE | CAN_IT_ERROR
+  );
+
+  status_can_tx = CAN_Send(&CAN1_Handle, &can_tx_mailbox);
 
   /* Infinite loop */
   while (1)
   {
-    HAL_Delay(100);
-    BSP_LED_Toggle(LED_GREEN);
-    BSP_LED_Toggle(LED_RED);
     if(GPIO_PIN_SET == BSP_SW_GetState(SWITCH_USER))
     {
-      LOG("ON \r");
-      status_can_tx = HAL_CAN_AddTxMessage(&CAN1_Handle, &msg_can_tx_header, msg_can_tx_data, &can_tx_mailbox);
+      BSP_LOG("Sending \r\n");
+      status_can_tx = CAN_Send(&CAN1_Handle, &can_tx_mailbox);
     }
-    else
-    {
-      LOG("OFF\r");
-    }
+
+    HAL_Delay(100);
   }
 }
 
@@ -193,4 +196,104 @@ void SystemClock_Config(void)
   { /* Initialization Error */
     while(1);
   }
+}
+
+HAL_StatusTypeDef CAN_Send(CAN_HandleTypeDef *hcan, uint32_t *can_mailbox)
+{
+  static CAN_TxHeaderTypeDef msg_can_tx_header = {
+    .StdId  = 0x12,
+    .IDE    = CAN_ID_STD,
+    .RTR    = CAN_RTR_DATA,
+    .DLC    = 8,
+    .TransmitGlobalTime = DISABLE
+  };
+
+  static uint8_t msg_can_tx_data[] = 
+  {
+    0x11, 0x22, 0x33, 0x44,
+    0x55, 0x66, 0x77, 0x88
+  };
+
+  return HAL_CAN_AddTxMessage(hcan, &msg_can_tx_header, msg_can_tx_data, can_mailbox);
+}
+
+void USB_HP_CAN1_TX_IRQHandler(void)
+{
+  HAL_CAN_IRQHandler(&CAN1_Handle);
+}
+
+void USB_LP_CAN1_RX0_IRQHandler(void)
+{
+  HAL_CAN_IRQHandler(&CAN1_Handle);
+}
+
+void CAN1_RX1_IRQHandler(void)
+{
+  HAL_CAN_IRQHandler(&CAN1_Handle);
+}
+
+void CAN1_SCE_IRQHandler(void)
+{
+  HAL_CAN_IRQHandler(&CAN1_Handle);
+}
+
+void HAL_CAN_TxMailbox0CompleteCallback(CAN_HandleTypeDef *hcan)
+{
+  BSP_LED_Toggle(LED_GREEN);
+  BSP_LOG("CAN TX MB0 complete.\r\n");
+}
+
+void HAL_CAN_TxMailbox1CompleteCallback(CAN_HandleTypeDef *hcan)
+{
+  BSP_LED_Toggle(LED_GREEN);
+  BSP_LOG("CAN TX MB1 complete.\r\n");
+}
+
+void HAL_CAN_TxMailbox2CompleteCallback(CAN_HandleTypeDef *hcan)
+{
+  BSP_LED_Toggle(LED_GREEN);
+  BSP_LOG("CAN TX MB2 complete.\r\n");
+}
+
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+  static CAN_RxHeaderTypeDef can_rx_header;
+  static CAN_TxHeaderTypeDef can_tx_header;
+  static uint32_t can_tx_mailbox;
+  static uint8_t can_rx_data[8];
+
+  BSP_LOG("CAN RX FIFO 0\r\n");
+  /* Read message and echo back with ID+1 */
+  HAL_CAN_GetRxMessage(hcan, 0, &can_rx_header, can_rx_data);
+
+  if(0x7FF == can_rx_header.StdId)
+  {
+    can_tx_header.StdId = 0;
+  }
+  else
+  {
+    can_tx_header.StdId = can_rx_header.StdId + 1;
+  }
+  can_tx_header.IDE    = can_rx_header.IDE;
+  can_tx_header.RTR    = can_rx_header.RTR;
+  can_tx_header.DLC    = can_rx_header.DLC;
+
+  HAL_CAN_AddTxMessage(hcan, &can_tx_header, can_rx_data, &can_tx_mailbox);
+}
+
+void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+  BSP_LOG("CAN RX FIFO 1\r\n");
+}
+
+void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
+{
+  BSP_LOG("CAN Error - CAN state: ");
+  char can_status[2] = {(char)(48+hcan->State), '\0'};  //48 = 0x30 = '0' ASCII
+  BSP_LOG(can_status);
+  BSP_LOG("\r\n");
+
+  /* On error switch on LED_RED and switch off LED_GREEN */
+  BSP_LED_On(LED_RED);
+  BSP_LED_Off(LED_GREEN);
 }

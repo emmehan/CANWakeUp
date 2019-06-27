@@ -155,10 +155,11 @@ void BSP_LED_Toggle(Led_TypeDef Led);
 void BSP_SW_Init(Switch_TypeDef Switch, SwitchMode_TypeDef Mode);
 GPIO_PinState BSP_SW_GetState(Switch_TypeDef Switch);
 
-void BSP_COM_Init(COM_TypeDef Com, UART_HandleTypeDef *huart);
-void BSP_COM_Print(UART_HandleTypeDef *huart, char  *pData);
+HAL_StatusTypeDef BSP_COM_Init(COM_TypeDef Com, UART_HandleTypeDef *huart);
+HAL_StatusTypeDef BSP_COM_Print(UART_HandleTypeDef *huart, char  *pData);
 
-void BSP_CAN_COM_Init(CAN_COM_TypeDef Can, CAN_HandleTypeDef *hcan);
+HAL_StatusTypeDef BSP_CAN_COM_Init(CAN_COM_TypeDef Can, CAN_HandleTypeDef *hcan);
+HAL_StatusTypeDef BSP_CAN_COM_FilterInit(CAN_COM_TypeDef Can, CAN_HandleTypeDef *hcan);
 
 /**
   * @}
