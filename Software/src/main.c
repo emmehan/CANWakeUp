@@ -46,7 +46,8 @@
 #include "main.h"
 
 /* UART logging macro */
-#define BSP_LOG(x)  BSP_COM_Print(&UART1_Handle, x)
+//#define BSP_LOG(x)  BSP_COM_Print(&UART1_Handle, x)
+#define BSP_LOG(x)
 
 void SystemClock_Config(void);
 HAL_StatusTypeDef CAN_Send(CAN_HandleTypeDef* hcan, uint32_t* can_mailbox);
@@ -65,7 +66,7 @@ const UART_InitTypeDef UART1_Init =
 const CAN_InitTypeDef CAN1_Init = 
 {
   .Prescaler = 4,
-  .Mode = CAN_MODE_LOOPBACK,
+  .Mode = CAN_MODE_NORMAL,
   .SyncJumpWidth = CAN_SJW_1TQ,
   .TimeSeg1 = CAN_BS1_15TQ,
   .TimeSeg2 = CAN_BS1_2TQ,
@@ -82,6 +83,15 @@ uint8_t uart1_rx_buffer[100];
 
 UART_HandleTypeDef UART1_Handle;
 CAN_HandleTypeDef CAN1_Handle;
+
+/* FreeRTOS stuff */
+void task_1(void*);
+void task_2(void*);
+#define STACK_SIZE 200
+StackType_t xStack_1[ STACK_SIZE ];
+StackType_t xStack_2[ STACK_SIZE ];
+
+StaticTask_t xTaskBuffer_1, xTaskBuffer_2;
 
 int main(void)
 {
@@ -152,15 +162,27 @@ int main(void)
 
   HAL_CAN_ActivateNotification(&CAN1_Handle,\
     CAN_IT_TX_MAILBOX_EMPTY\
-    // | CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_RX_FIFO0_FULL | CAN_IT_RX_FIFO0_OVERRUN \
-    // | CAN_IT_RX_FIFO1_MSG_PENDING | CAN_IT_RX_FIFO1_FULL | CAN_IT_RX_FIFO1_OVERRUN \
+    | CAN_IT_RX_FIFO0_MSG_PENDING //| CAN_IT_RX_FIFO0_FULL | CAN_IT_RX_FIFO0_OVERRUN
+    | CAN_IT_RX_FIFO1_MSG_PENDING //| CAN_IT_RX_FIFO1_FULL | CAN_IT_RX_FIFO1_OVERRUN \
     // | CAN_IT_BUSOFF | CAN_IT_ERROR_WARNING | CAN_IT_ERROR_PASSIVE | CAN_IT_ERROR
   );
 
   status_can_tx = CAN_Send(&CAN1_Handle, &can_tx_mailbox);
 
-  /* Infinite loop */
-  while (1)
+  /* Create task 1 - LED Green Blinky */
+  xTaskCreateStatic(task_1, "LED_GREEN", STACK_SIZE, (void*) 1, tskIDLE_PRIORITY, xStack_1, &xTaskBuffer_1);
+
+  /* Create task 2 - LED Red Blinky */
+  xTaskCreateStatic(task_2, "LED_RED", STACK_SIZE, (void*) 1, tskIDLE_PRIORITY, xStack_2, &xTaskBuffer_2);
+
+  vTaskStartScheduler();
+}
+
+void task_1(void* args)
+{
+  uint32_t can_tx_mailbox;
+  HAL_StatusTypeDef status_can_tx = HAL_ERROR;
+  while(1)
   {
     if(GPIO_PIN_SET == BSP_SW_GetState(SWITCH_USER))
     {
@@ -172,8 +194,16 @@ int main(void)
       BSP_LED_Off(LED_GREEN);
     }
     
-
     HAL_Delay(1000);
+  }
+}
+
+void task_2(void* args)
+{
+  while(1)
+  {
+    vTaskDelay(100/portTICK_PERIOD_MS);
+    BSP_LED_Toggle(LED_RED);
   }
 }
 
@@ -243,6 +273,12 @@ void PVD_IRQHandler(void)
   HAL_PWR_PVD_IRQHandler();
 }
 
+void HAL_PWR_PVDCallback(void)
+{
+  BSP_LOG("Undervoltage <2.9V detected!\r\n");
+  BSP_LED_On(LED_RED);
+}
+
 void USB_HP_CAN1_TX_IRQHandler(void)
 {
   HAL_CAN_IRQHandler(&CAN1_Handle);
@@ -263,15 +299,9 @@ void CAN1_SCE_IRQHandler(void)
   HAL_CAN_IRQHandler(&CAN1_Handle);
 }
 
-void HAL_PWR_PVDCallback(void)
-{
-  BSP_LED_On(LED_RED);
-}
-
 void HAL_CAN_TxMailbox0CompleteCallback(CAN_HandleTypeDef *hcan)
 {
   BSP_LED_Toggle(LED_GREEN);
-  BSP_LED_Off(LED_RED);
   BSP_LOG("CAN TX MB0 complete.\r\n");
 }
 
@@ -328,4 +358,27 @@ void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
   /* On error switch on LED_RED and switch off LED_GREEN */
   BSP_LED_On(LED_RED);
   BSP_LED_Off(LED_GREEN);
+}
+
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
+                                    StackType_t **ppxIdleTaskStackBuffer,
+                                    uint32_t *pulIdleTaskStackSize )
+{
+/* If the buffers to be provided to the Idle task are declared inside this
+function then they must be declared static - otherwise they will be allocated on
+the stack and so not exists after this function exits. */
+static StaticTask_t xIdleTaskTCB;
+static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
+
+    /* Pass out a pointer to the StaticTask_t structure in which the Idle task's
+    state will be stored. */
+    *ppxIdleTaskTCBBuffer = &xIdleTaskTCB;
+
+    /* Pass out the array that will be used as the Idle task's stack. */
+    *ppxIdleTaskStackBuffer = uxIdleTaskStack;
+
+    /* Pass out the size of the array pointed to by *ppxIdleTaskStackBuffer.
+    Note that, as the array is necessarily of type StackType_t,
+    configMINIMAL_STACK_SIZE is specified in words, not bytes. */
+    *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
 }

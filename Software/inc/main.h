@@ -22,3 +22,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "stm32f1xx_hal.h"
 #include "bsp_canwakeup.h"
+#include "FreeRTOS.h"
+#include "task.h"
