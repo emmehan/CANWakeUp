@@ -104,6 +104,22 @@ int main(void)
     while(1){};
   }
 
+  PWR_PVDTypeDef pwrpvdstruct = {
+    .PVDLevel = PWR_PVDLEVEL_7,
+    .Mode = PWR_PVD_MODE_IT_RISING_FALLING,
+  };
+
+  __HAL_RCC_PWR_CLK_ENABLE();
+
+  HAL_PWR_ConfigPVD(&pwrpvdstruct);
+
+  HAL_NVIC_SetPriority(PVD_IRQn, 1, 1);
+  HAL_NVIC_EnableIRQ(PVD_IRQn);
+
+  //__HAL_PWR_PVD_EXTI_ENABLE_IT();
+
+  HAL_PWR_EnablePVD();
+
   BSP_LED_Init(LED_RED);
   BSP_LED_Init(LED_GREEN);
 
@@ -222,6 +238,11 @@ HAL_StatusTypeDef CAN_Send(CAN_HandleTypeDef *hcan, uint32_t *can_mailbox)
   return HAL_CAN_AddTxMessage(hcan, &msg_can_tx_header, msg_can_tx_data, can_mailbox);
 }
 
+void PVD_IRQHandler(void)
+{
+  HAL_PWR_PVD_IRQHandler();
+}
+
 void USB_HP_CAN1_TX_IRQHandler(void)
 {
   HAL_CAN_IRQHandler(&CAN1_Handle);
@@ -240,6 +261,11 @@ void CAN1_RX1_IRQHandler(void)
 void CAN1_SCE_IRQHandler(void)
 {
   HAL_CAN_IRQHandler(&CAN1_Handle);
+}
+
+void HAL_PWR_PVDCallback(void)
+{
+  BSP_LED_On(LED_RED);
 }
 
 void HAL_CAN_TxMailbox0CompleteCallback(CAN_HandleTypeDef *hcan)
