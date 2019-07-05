@@ -66,7 +66,7 @@ const UART_InitTypeDef UART1_Init =
 const CAN_InitTypeDef CAN1_Init = 
 {
   .Prescaler = 4,
-  .Mode = CAN_MODE_NORMAL,
+  .Mode = CAN_MODE_LOOPBACK,
   .SyncJumpWidth = CAN_SJW_1TQ,
   .TimeSeg1 = CAN_BS1_15TQ,
   .TimeSeg2 = CAN_BS1_2TQ,
@@ -85,10 +85,10 @@ UART_HandleTypeDef UART1_Handle;
 CAN_HandleTypeDef CAN1_Handle;
 
 /* FreeRTOS stuff */
-void task_1(void*);
+void task_CAN(void*);
 void task_2(void*);
 #define STACK_SIZE 200
-StackType_t xStack_1[ STACK_SIZE ];
+StackType_t xStack_task_CAN[ STACK_SIZE ];
 StackType_t xStack_2[ STACK_SIZE ];
 
 StaticTask_t xTaskBuffer_1, xTaskBuffer_2;
@@ -126,8 +126,6 @@ int main(void)
   HAL_NVIC_SetPriority(PVD_IRQn, 1, 1);
   HAL_NVIC_EnableIRQ(PVD_IRQn);
 
-  //__HAL_PWR_PVD_EXTI_ENABLE_IT();
-
   HAL_PWR_EnablePVD();
 
   BSP_LED_Init(LED_RED);
@@ -148,37 +146,28 @@ int main(void)
     while(1){};
   }
 
-  HAL_CAN_Start(&CAN1_Handle);
+  if(HAL_OK != BSP_CAN_COM_Start(CAN_COM0, &CAN1_Handle))
+  {
+    while(1){};
+  }
 
-  HAL_NVIC_SetPriority(USB_HP_CAN1_TX_IRQn, 1, 1);
-  HAL_NVIC_SetPriority(USB_LP_CAN1_RX0_IRQn, 1, 1);
-  HAL_NVIC_SetPriority(CAN1_RX1_IRQn, 1, 1);
-  HAL_NVIC_SetPriority(CAN1_SCE_IRQn, 1, 1);
+  vTraceEnable(TRC_START);
 
-  HAL_NVIC_EnableIRQ(USB_HP_CAN1_TX_IRQn);
-  HAL_NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
-  HAL_NVIC_EnableIRQ(CAN1_RX1_IRQn);
-  HAL_NVIC_EnableIRQ(CAN1_SCE_IRQn);
+  /*
+   * FreeRTOS 
+   */
 
-  HAL_CAN_ActivateNotification(&CAN1_Handle,\
-    CAN_IT_TX_MAILBOX_EMPTY\
-    | CAN_IT_RX_FIFO0_MSG_PENDING //| CAN_IT_RX_FIFO0_FULL | CAN_IT_RX_FIFO0_OVERRUN
-    | CAN_IT_RX_FIFO1_MSG_PENDING //| CAN_IT_RX_FIFO1_FULL | CAN_IT_RX_FIFO1_OVERRUN \
-    // | CAN_IT_BUSOFF | CAN_IT_ERROR_WARNING | CAN_IT_ERROR_PASSIVE | CAN_IT_ERROR
-  );
-
-  status_can_tx = CAN_Send(&CAN1_Handle, &can_tx_mailbox);
-
-  /* Create task 1 - LED Green Blinky */
-  xTaskCreateStatic(task_1, "LED_GREEN", STACK_SIZE, (void*) 1, tskIDLE_PRIORITY, xStack_1, &xTaskBuffer_1);
+  /* Create task 1 - CAN_Task */
+  xTaskCreateStatic(task_CAN, "CAN task", STACK_SIZE, (void*) 1, tskIDLE_PRIORITY, xStack_task_CAN, &xTaskBuffer_1);
 
   /* Create task 2 - LED Red Blinky */
-  xTaskCreateStatic(task_2, "LED_RED", STACK_SIZE, (void*) 1, tskIDLE_PRIORITY, xStack_2, &xTaskBuffer_2);
+  xTaskCreateStatic(task_2, "LED_RED", STACK_SIZE, (void*) 1, 1, xStack_2, &xTaskBuffer_2);
 
+  /* Start the FreeRTOS scheduler */
   vTaskStartScheduler();
 }
 
-void task_1(void* args)
+void task_CAN(void* args)
 {
   uint32_t can_tx_mailbox;
   HAL_StatusTypeDef status_can_tx = HAL_ERROR;
@@ -187,6 +176,7 @@ void task_1(void* args)
     if(GPIO_PIN_SET == BSP_SW_GetState(SWITCH_USER))
     {
       BSP_LOG("Sending \r\n");
+      BSP_LED_Toggle(LED_GREEN);
       status_can_tx = CAN_Send(&CAN1_Handle, &can_tx_mailbox);
     }
     else
@@ -194,7 +184,7 @@ void task_1(void* args)
       BSP_LED_Off(LED_GREEN);
     }
     
-    HAL_Delay(1000);
+    vTaskDelay(150/portTICK_PERIOD_MS);
   }
 }
 

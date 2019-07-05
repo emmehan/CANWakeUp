@@ -171,5 +171,10 @@ header file. */
               to prevent overwriting SysTick_Handler defined within STM32Cube HAL */
 /* #define xPortSysTickHandler SysTick_Handler */
 
+/* Integrates the Tracealyzer recorder with FreeRTOS */
+#if ( configUSE_TRACE_FACILITY == 1 )
+	#include "trcRecorder.h"
+#endif
+
 #endif /* FREERTOS_CONFIG_H */
 
