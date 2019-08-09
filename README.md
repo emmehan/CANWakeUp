@@ -26,7 +26,7 @@ It is developed on Linux (Arch-Linux, Kernel 4.19.2) using the GNU ARM toolchain
 To build the firmware run:
 
     make MAIN=FW_NAME
-in the root directory.
+in .\Software directory.
 
 The `MAIN` parameter is optional and used to define the firmware name.
 
