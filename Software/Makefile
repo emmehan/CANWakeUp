@@ -26,29 +26,29 @@ OUT_DIR = build
 # Documentation directory
 DOC_DIR = doc
 
-HAL_SRC_DIR				= ./Drivers/STM32F1xx_HAL_Driver/Src
-HAL_INC_DIR				= ./Drivers/STM32F1xx_HAL_Driver/Inc
-
-CMSIS_SRC_DIR 			= ./Drivers/CMSIS/Device/ST/STM32F1xx/Source
-CMSIS_DEVICE_INC_DIR	= ./Drivers/CMSIS/Device/ST/STM32F1xx/Include 
-CMSIS_INC_DIR			= ./Drivers/CMSIS/Include
-
-BSP_SRC_DIR				= ./Drivers/BSP/CANWakeUp/src
-BSP_INC_DIR				= ./Drivers/BSP/CANWakeUp/inc
-
-FREERTOS_SRC_DIR		= ./Middleware/FreeRTOS/Source
-FREERTOS_INC_DIR		= ./Middleware/FreeRTOS/Source/include
-CMSIS_RTOS_SRC_DIR		= ./Middleware/FreeRTOS/Source/CMSIS_RTOS
-CMSIS_RTOS_INC_DIR		= ./Middleware/FreeRTOS/Source/CMSIS_RTOS
+HAL_SRC_DIR						= ./Drivers/STM32F1xx_HAL_Driver/Src
+HAL_INC_DIR						= ./Drivers/STM32F1xx_HAL_Driver/Inc
+		
+CMSIS_SRC_DIR 					= ./Drivers/CMSIS/Device/ST/STM32F1xx/Source
+CMSIS_DEVICE_INC_DIR			= ./Drivers/CMSIS/Device/ST/STM32F1xx/Include 
+CMSIS_INC_DIR					= ./Drivers/CMSIS/Include
+		
+BSP_SRC_DIR						= ./Drivers/BSP/CANWakeUp/src
+BSP_INC_DIR						= ./Drivers/BSP/CANWakeUp/inc
+		
+FREERTOS_SRC_DIR				= ./Middleware/FreeRTOS/Source
+FREERTOS_INC_DIR				= ./Middleware/FreeRTOS/Source/include
+CMSIS_RTOS_SRC_DIR				= ./Middleware/FreeRTOS/Source/CMSIS_RTOS
+CMSIS_RTOS_INC_DIR				= ./Middleware/FreeRTOS/Source/CMSIS_RTOS
 PORTABLE_COMMON_RTOS_SRC_DIR	= ./Middleware/FreeRTOS/Source/portable/Common
-PORTABLE_GCC_RTOS_SRC_DIR	= ./Middleware/FreeRTOS/Source/portable/GCC/ARM_CM3
-PORTABLE_GCC_RTOS_INC_DIR	= ./Middleware/FreeRTOS/Source/portable/GCC/ARM_CM3
+PORTABLE_GCC_RTOS_SRC_DIR		= ./Middleware/FreeRTOS/Source/portable/GCC/ARM_CM3
+PORTABLE_GCC_RTOS_INC_DIR		= ./Middleware/FreeRTOS/Source/portable/GCC/ARM_CM3
 
-TRACE_SRC_DIR			= ./Trace/src
-TRACE_INC_DIR			= ./Trace/inc
-
-APP_SRC_DIR				= ./src
-APP_INC_DIR				= ./inc
+TRACE_SRC_DIR					= ./Trace/src
+TRACE_INC_DIR					= ./Trace/inc
+		
+APP_SRC_DIR						= ./src
+APP_INC_DIR						= ./inc
 
 
 #######################
