@@ -1,5 +1,7 @@
 # CAN WakeUp
 
+[![Build Status](http://ci.jonasheim.de/buildStatus/icon?job=CANWakeUp)](http://ci.jonasheim.de/job/CANWakeUp/)
+
 The intendation of this project is to create a device that will act as a Wake-Up source for CAN devices.
 A microcontroller ([STM32F103](https://www.st.com/en/microcontrollers/stm32f103c8.html)) sends a cyclic CAN messages using an external CAN transceiver ([TJA1050](https://www.nxp.com/docs/en/data-sheet/TJA1050.pdf)).
 
