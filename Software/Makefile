@@ -33,8 +33,8 @@ CMSIS_SRC_DIR 			= ./Drivers/CMSIS/Device/ST/STM32F1xx/Source
 CMSIS_DEVICE_INC_DIR	= ./Drivers/CMSIS/Device/ST/STM32F1xx/Include 
 CMSIS_INC_DIR			= ./Drivers/CMSIS/Include
 
-BSP_SRC_DIR				= ./Drivers/BSP/CANWakeup/src
-BSP_INC_DIR				= ./Drivers/BSP/CANWakeup/inc
+BSP_SRC_DIR				= ./Drivers/BSP/CANWakeUp/src
+BSP_INC_DIR				= ./Drivers/BSP/CANWakeUp/inc
 
 FREERTOS_SRC_DIR		= ./Middleware/FreeRTOS/Source
 FREERTOS_INC_DIR		= ./Middleware/FreeRTOS/Source/include
