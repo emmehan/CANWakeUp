@@ -187,11 +187,31 @@ HAL_StatusTypeDef BSP_CAN_COM_Init(CAN_COM_TypeDef Can, CAN_HandleTypeDef *hcan)
     HAL_GPIO_Init(CAN_COM_S_PORT[Can], &gpioinitstruct);
 
     /* Set CAN S low -> Enable CAN Transceiver Normal/HighSpeed Mode */
-    //TODO On test board not working...
     HAL_GPIO_WritePin(CAN_COM_S_PORT[Can], CAN_COM_S_PIN[Can], GPIO_PIN_RESET);
 
     hcan->Instance         = CAN_COM[Can];
     ret_val = HAL_CAN_Init(hcan);
+
+    if(HAL_OK == ret_val)
+    {
+        /* Init CAN interrupts */
+        HAL_NVIC_SetPriority(USB_HP_CAN1_TX_IRQn, 1, 1);
+        HAL_NVIC_SetPriority(USB_LP_CAN1_RX0_IRQn, 1, 1);
+        HAL_NVIC_SetPriority(CAN1_RX1_IRQn, 1, 1);
+        HAL_NVIC_SetPriority(CAN1_SCE_IRQn, 1, 1);
+
+        HAL_NVIC_EnableIRQ(USB_HP_CAN1_TX_IRQn);
+        HAL_NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
+        HAL_NVIC_EnableIRQ(CAN1_RX1_IRQn);
+        HAL_NVIC_EnableIRQ(CAN1_SCE_IRQn);
+
+        ret_val = HAL_CAN_ActivateNotification(hcan, CAN_IT_TX_MAILBOX_EMPTY \
+        | CAN_IT_RX_FIFO0_MSG_PENDING \
+        //| CAN_IT_RX_FIFO0_FULL | CAN_IT_RX_FIFO0_OVERRUN
+        | CAN_IT_RX_FIFO1_MSG_PENDING //| CAN_IT_RX_FIFO1_FULL | CAN_IT_RX_FIFO1_OVERRUN
+        // | CAN_IT_BUSOFF | CAN_IT_ERROR_WARNING | CAN_IT_ERROR_PASSIVE | CAN_IT_ERROR
+        );
+    }
 
     return ret_val;
 }
@@ -213,3 +233,14 @@ HAL_StatusTypeDef BSP_CAN_COM_FilterInit(CAN_COM_TypeDef Can, CAN_HandleTypeDef 
     return HAL_CAN_ConfigFilter(hcan, &canfilterstruct);
 }
 
+HAL_StatusTypeDef BSP_CAN_COM_Start(CAN_COM_TypeDef Can, CAN_HandleTypeDef *hcan)
+{
+    return HAL_CAN_Start(hcan);
+}
+
+HAL_StatusTypeDef BSP_CAN_COM_Send(CAN_COM_TypeDef Can, CAN_HandleTypeDef *hcan, CAN_COM_Frame_TypeDef frame)
+{
+    uint32_t can_tx_mailbox = 0;
+
+    return HAL_CAN_AddTxMessage(hcan, &(frame.header), frame.data, &can_tx_mailbox);
+}

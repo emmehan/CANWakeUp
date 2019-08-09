@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.sco": "python",
+        "main.h": "c"
+    }
+}

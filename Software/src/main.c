@@ -46,7 +46,8 @@
 #include "main.h"
 
 /* UART logging macro */
-#define BSP_LOG(x)  BSP_COM_Print(&UART1_Handle, x)
+//#define BSP_LOG(x)  BSP_COM_Print(&UART1_Handle, x)
+#define BSP_LOG(x)
 
 void SystemClock_Config(void);
 HAL_StatusTypeDef CAN_Send(CAN_HandleTypeDef* hcan, uint32_t* can_mailbox);
@@ -83,6 +84,15 @@ uint8_t uart1_rx_buffer[100];
 UART_HandleTypeDef UART1_Handle;
 CAN_HandleTypeDef CAN1_Handle;
 
+/* FreeRTOS stuff */
+void task_CAN(void*);
+void task_2(void*);
+#define STACK_SIZE 200
+StackType_t xStack_task_CAN[ STACK_SIZE ];
+StackType_t xStack_2[ STACK_SIZE ];
+
+StaticTask_t xTaskBuffer_1, xTaskBuffer_2;
+
 int main(void)
 {
   UART1_Handle.Init         = UART1_Init;
@@ -104,6 +114,20 @@ int main(void)
     while(1){};
   }
 
+  PWR_PVDTypeDef pwrpvdstruct = {
+    .PVDLevel = PWR_PVDLEVEL_7,
+    .Mode = PWR_PVD_MODE_IT_RISING_FALLING,
+  };
+
+  __HAL_RCC_PWR_CLK_ENABLE();
+
+  HAL_PWR_ConfigPVD(&pwrpvdstruct);
+
+  HAL_NVIC_SetPriority(PVD_IRQn, 1, 1);
+  HAL_NVIC_EnableIRQ(PVD_IRQn);
+
+  HAL_PWR_EnablePVD();
+
   BSP_LED_Init(LED_RED);
   BSP_LED_Init(LED_GREEN);
 
@@ -122,33 +146,37 @@ int main(void)
     while(1){};
   }
 
-  HAL_CAN_Start(&CAN1_Handle);
+  if(HAL_OK != BSP_CAN_COM_Start(CAN_COM0, &CAN1_Handle))
+  {
+    while(1){};
+  }
 
-  HAL_NVIC_SetPriority(USB_HP_CAN1_TX_IRQn, 1, 1);
-  HAL_NVIC_SetPriority(USB_LP_CAN1_RX0_IRQn, 1, 1);
-  HAL_NVIC_SetPriority(CAN1_RX1_IRQn, 1, 1);
-  HAL_NVIC_SetPriority(CAN1_SCE_IRQn, 1, 1);
+  vTraceEnable(TRC_START);
 
-  HAL_NVIC_EnableIRQ(USB_HP_CAN1_TX_IRQn);
-  HAL_NVIC_EnableIRQ(USB_LP_CAN1_RX0_IRQn);
-  HAL_NVIC_EnableIRQ(CAN1_RX1_IRQn);
-  HAL_NVIC_EnableIRQ(CAN1_SCE_IRQn);
+  /*
+   * FreeRTOS 
+   */
 
-  HAL_CAN_ActivateNotification(&CAN1_Handle,\
-    CAN_IT_TX_MAILBOX_EMPTY\
-    // | CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_RX_FIFO0_FULL | CAN_IT_RX_FIFO0_OVERRUN \
-    // | CAN_IT_RX_FIFO1_MSG_PENDING | CAN_IT_RX_FIFO1_FULL | CAN_IT_RX_FIFO1_OVERRUN \
-    // | CAN_IT_BUSOFF | CAN_IT_ERROR_WARNING | CAN_IT_ERROR_PASSIVE | CAN_IT_ERROR
-  );
+  /* Create task 1 - CAN_Task */
+  xTaskCreateStatic(task_CAN, "CAN task", STACK_SIZE, (void*) 1, tskIDLE_PRIORITY, xStack_task_CAN, &xTaskBuffer_1);
 
-  status_can_tx = CAN_Send(&CAN1_Handle, &can_tx_mailbox);
+  /* Create task 2 - LED Red Blinky */
+  xTaskCreateStatic(task_2, "LED_RED", STACK_SIZE, (void*) 1, 1, xStack_2, &xTaskBuffer_2);
 
-  /* Infinite loop */
-  while (1)
+  /* Start the FreeRTOS scheduler */
+  vTaskStartScheduler();
+}
+
+void task_CAN(void* args)
+{
+  uint32_t can_tx_mailbox;
+  HAL_StatusTypeDef status_can_tx = HAL_ERROR;
+  while(1)
   {
     if(GPIO_PIN_SET == BSP_SW_GetState(SWITCH_USER))
     {
       BSP_LOG("Sending \r\n");
+      BSP_LED_Toggle(LED_GREEN);
       status_can_tx = CAN_Send(&CAN1_Handle, &can_tx_mailbox);
     }
     else
@@ -156,8 +184,16 @@ int main(void)
       BSP_LED_Off(LED_GREEN);
     }
     
+    vTaskDelay(150/portTICK_PERIOD_MS);
+  }
+}
 
-    HAL_Delay(1000);
+void task_2(void* args)
+{
+  while(1)
+  {
+    vTaskDelay(100/portTICK_PERIOD_MS);
+    BSP_LED_Toggle(LED_RED);
   }
 }
 
@@ -222,6 +258,17 @@ HAL_StatusTypeDef CAN_Send(CAN_HandleTypeDef *hcan, uint32_t *can_mailbox)
   return HAL_CAN_AddTxMessage(hcan, &msg_can_tx_header, msg_can_tx_data, can_mailbox);
 }
 
+void PVD_IRQHandler(void)
+{
+  HAL_PWR_PVD_IRQHandler();
+}
+
+void HAL_PWR_PVDCallback(void)
+{
+  BSP_LOG("Undervoltage <2.9V detected!\r\n");
+  BSP_LED_On(LED_RED);
+}
+
 void USB_HP_CAN1_TX_IRQHandler(void)
 {
   HAL_CAN_IRQHandler(&CAN1_Handle);
@@ -245,7 +292,6 @@ void CAN1_SCE_IRQHandler(void)
 void HAL_CAN_TxMailbox0CompleteCallback(CAN_HandleTypeDef *hcan)
 {
   BSP_LED_Toggle(LED_GREEN);
-  BSP_LED_Off(LED_RED);
   BSP_LOG("CAN TX MB0 complete.\r\n");
 }
 
@@ -302,4 +348,27 @@ void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
   /* On error switch on LED_RED and switch off LED_GREEN */
   BSP_LED_On(LED_RED);
   BSP_LED_Off(LED_GREEN);
+}
+
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
+                                    StackType_t **ppxIdleTaskStackBuffer,
+                                    uint32_t *pulIdleTaskStackSize )
+{
+/* If the buffers to be provided to the Idle task are declared inside this
+function then they must be declared static - otherwise they will be allocated on
+the stack and so not exists after this function exits. */
+static StaticTask_t xIdleTaskTCB;
+static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
+
+    /* Pass out a pointer to the StaticTask_t structure in which the Idle task's
+    state will be stored. */
+    *ppxIdleTaskTCBBuffer = &xIdleTaskTCB;
+
+    /* Pass out the array that will be used as the Idle task's stack. */
+    *ppxIdleTaskStackBuffer = uxIdleTaskStack;
+
+    /* Pass out the size of the array pointed to by *ppxIdleTaskStackBuffer.
+    Note that, as the array is necessarily of type StackType_t,
+    configMINIMAL_STACK_SIZE is specified in words, not bytes. */
+    *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
 }

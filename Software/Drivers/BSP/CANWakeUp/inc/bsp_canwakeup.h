@@ -47,6 +47,12 @@ typedef enum
   CAN_COM0 = 0,
 } CAN_COM_TypeDef;
 
+typedef struct 
+{
+  CAN_TxHeaderTypeDef header;
+  uint8_t             data[8];
+} CAN_COM_Frame_TypeDef;
+
 #define LEDn                             2
 
 #define LED0_PIN                         GPIO_PIN_0
@@ -160,6 +166,8 @@ HAL_StatusTypeDef BSP_COM_Print(UART_HandleTypeDef *huart, char  *pData);
 
 HAL_StatusTypeDef BSP_CAN_COM_Init(CAN_COM_TypeDef Can, CAN_HandleTypeDef *hcan);
 HAL_StatusTypeDef BSP_CAN_COM_FilterInit(CAN_COM_TypeDef Can, CAN_HandleTypeDef *hcan);
+HAL_StatusTypeDef BSP_CAN_COM_Start(CAN_COM_TypeDef Can, CAN_HandleTypeDef *hcan);
+HAL_StatusTypeDef BSP_CAN_COM_Send(CAN_COM_TypeDef Can, CAN_HandleTypeDef *hcan, CAN_COM_Frame_TypeDef frame);
 
 /**
   * @}
